@@ -2,6 +2,7 @@
 backend/target/
 backend/data/
 backend/*.log
+backend/src/main/resources/application.properties
 
 # Frontend
 client/node_modules/
