@@ -2,7 +2,9 @@ package com.sender.service;
 
 import com.sender.model.EmailTemplate;
 import com.sender.model.Recipient;
+import com.sender.model.SendJob;
 import com.sender.repository.RecipientRepository;
+import com.sender.repository.SendJobRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +26,7 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
     private final RecipientRepository recipientRepo;
+    private final SendJobRepository sendJobRepo;
 
     @Value("${app.email.from}")
     private String fromAddress;
@@ -31,7 +34,7 @@ public class EmailService {
     private static final Pattern VAR_PATTERN = Pattern.compile("\\{(\\w+)}");
 
     @Async
-    public void sendBatch(EmailTemplate template, List<Recipient> recipients) {
+    public void sendBatch(EmailTemplate template, List<Recipient> recipients, SendJob job) {
         int success = 0, failed = 0;
 
         for (Recipient recipient : recipients) {
@@ -59,6 +62,12 @@ public class EmailService {
                 log.error("Failed to send to {} ({}): {}", recipient.getName(), recipient.getEmail(), e.getMessage());
             }
         }
+
+        job.setSuccess(success);
+        job.setFailed(failed);
+        job.setStatus("DONE");
+        job.setFinishedAt(LocalDateTime.now());
+        sendJobRepo.save(job);
 
         log.info("Batch complete: {} sent, {} failed out of {}", success, failed, recipients.size());
     }

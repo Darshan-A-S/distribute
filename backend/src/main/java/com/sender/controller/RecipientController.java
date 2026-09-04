@@ -2,12 +2,15 @@ package com.sender.controller;
 
 import com.sender.dto.ExcelPreview;
 import com.sender.model.Recipient;
+import com.sender.model.UserAccount;
 import com.sender.service.ExcelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,10 +30,10 @@ public class RecipientController {
     public ResponseEntity<Map<String, Object>> upload(
             @RequestParam("file") MultipartFile file,
             @RequestParam("batchName") String batchName,
-            @RequestParam("columnMapping") String columnMappingJson) {
-        // Parse column mapping from JSON string
+            @RequestParam("columnMapping") String columnMappingJson,
+            Authentication auth) {
         Map<String, String> columnMapping = parseColumnMapping(columnMappingJson);
-        List<Recipient> saved = excelService.saveRecipients(file, batchName, columnMapping);
+        List<Recipient> saved = excelService.saveRecipients(file, batchName, columnMapping, ownerId(auth));
         return ResponseEntity.ok(Map.of(
                 "batchName", batchName,
                 "count", saved.size()
@@ -38,24 +41,24 @@ public class RecipientController {
     }
 
     @GetMapping("/batch/{batchName}")
-    public List<Recipient> getBatch(@PathVariable String batchName) {
-        return excelService.getRecipients(batchName);
+    public List<Recipient> getBatch(@PathVariable String batchName, Authentication auth) {
+        return excelService.getRecipients(batchName, ownerId(auth));
     }
 
     @GetMapping("/batch/{batchName}/stats")
-    public Map<String, Long> getBatchStats(@PathVariable String batchName) {
-        long[] stats = excelService.getBatchStats(batchName);
+    public Map<String, Long> getBatchStats(@PathVariable String batchName, Authentication auth) {
+        long[] stats = excelService.getBatchStats(batchName, ownerId(auth));
         return Map.of("sent", stats[0], "pending", stats[1]);
     }
 
     @DeleteMapping("/batch/{batchName}")
-    public ResponseEntity<Void> deleteBatch(@PathVariable String batchName) {
-        excelService.deleteBatch(batchName);
+    public ResponseEntity<Void> deleteBatch(@PathVariable String batchName, Authentication auth) {
+        excelService.deleteBatch(batchName, ownerId(auth));
         return ResponseEntity.noContent().build();
     }
 
     private Map<String, String> parseColumnMapping(String json) {
-        Map<String, String> map = new java.util.LinkedHashMap<>();
+        Map<String, String> map = new LinkedHashMap<>();
         String cleaned = json.trim();
         if (cleaned.startsWith("{")) cleaned = cleaned.substring(1);
         if (cleaned.endsWith("}")) cleaned = cleaned.substring(0, cleaned.length() - 1);
@@ -68,5 +71,9 @@ public class RecipientController {
             }
         }
         return map;
+    }
+
+    private Long ownerId(Authentication auth) {
+        return ((UserAccount) auth.getPrincipal()).getId();
     }
 }

@@ -13,17 +13,18 @@ public class TemplateService {
 
     private final EmailTemplateRepository repo;
 
-    public List<EmailTemplate> findAll() {
-        return repo.findAll();
+    public List<EmailTemplate> findAll(Long ownerId) {
+        return repo.findByOwnerId(ownerId);
     }
 
-    public EmailTemplate findById(Long id) {
-        return repo.findById(id)
+    public EmailTemplate findById(Long id, Long ownerId) {
+        return repo.findByIdAndOwnerId(id, ownerId)
                 .orElseThrow(() -> new RuntimeException("Template not found: " + id));
     }
 
-    public EmailTemplate create(TemplateRequest req) {
+    public EmailTemplate create(TemplateRequest req, Long ownerId) {
         EmailTemplate template = EmailTemplate.builder()
+                .ownerId(ownerId)
                 .name(req.getName())
                 .subject(req.getSubject())
                 .body(req.getBody())
@@ -32,8 +33,8 @@ public class TemplateService {
         return repo.save(template);
     }
 
-    public EmailTemplate update(Long id, TemplateRequest req) {
-        EmailTemplate template = findById(id);
+    public EmailTemplate update(Long id, TemplateRequest req, Long ownerId) {
+        EmailTemplate template = findById(id, ownerId);
         template.setName(req.getName());
         template.setSubject(req.getSubject());
         template.setBody(req.getBody());
@@ -41,7 +42,7 @@ public class TemplateService {
         return repo.save(template);
     }
 
-    public void delete(Long id) {
-        repo.deleteById(id);
+    public void delete(Long id, Long ownerId) {
+        repo.delete(findById(id, ownerId));
     }
 }

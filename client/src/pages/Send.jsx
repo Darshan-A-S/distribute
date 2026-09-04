@@ -8,9 +8,12 @@ export default function Send() {
   const [batchName, setBatchName] = useState('')
   const [sending, setSending] = useState(false)
   const [status, setStatus] = useState(null)
+  const [recent, setRecent] = useState([])
 
+  const loadRecent = () => api.getRecentSends().then(setRecent).catch(() => {})
   useEffect(() => {
     api.getTemplates().then(setTemplates).catch(e => toast.error(e.message))
+    loadRecent()
   }, [])
 
   const handleSend = async () => {
@@ -34,7 +37,11 @@ export default function Send() {
     try {
       const s = await api.getSendStatus(batchName)
       setStatus(s)
-      if (s.pending > 0) setTimeout(pollStatus, 2000)
+      if (s.pending > 0) {
+        setTimeout(pollStatus, 2000)
+      } else {
+        loadRecent()
+      }
     } catch (e) {}
   }
 
@@ -94,6 +101,34 @@ export default function Send() {
           )}
         </div>
       )}
+
+      <div className="mt-6 max-w-2xl">
+        <h3 className="text-lg font-semibold mb-3">Recent Sends</h3>
+        {recent.length === 0 ? (
+          <p className="text-gray-500 text-sm">No sends yet.</p>
+        ) : (
+          <div className="space-y-2">
+            {recent.map((j) => (
+              <div key={j.id} className="bg-gray-900 border border-gray-800 rounded-lg p-4 flex items-center justify-between">
+                <div>
+                  <p className="font-medium">{j.templateName || 'Template'}</p>
+                  <p className="text-sm text-gray-400">Batch: {j.batchName} · {new Date(j.startedAt).toLocaleString()}</p>
+                </div>
+                <div className="text-right text-sm">
+                  <p className="text-green-400">{j.success} sent{failedCount(j) ? ` · ${failedCount(j)} failed` : ''}</p>
+                  <p className={`text-gray-400 ${j.status === 'DONE' ? '' : 'text-yellow-400'}`}>
+                    {j.status} · {j.total} total
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
+}
+
+function failedCount(j) {
+  return j.failed || 0
 }

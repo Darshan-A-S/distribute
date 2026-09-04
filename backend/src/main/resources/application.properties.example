@@ -1,16 +1,12 @@
 spring.application.name=sender
 
-# H2 Database
-spring.datasource.url=jdbc:h2:file:./data/senderdb
-spring.datasource.driver-class-name=org.h2.Driver
-spring.datasource.username=sa
+# PostgreSQL Database
+spring.datasource.url=jdbc:postgresql://localhost:5432/sender
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.datasource.username=sender
 spring.datasource.password=
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=false
-
-# H2 Console
-spring.h2.console.enabled=true
-spring.h2.console.path=/h2-console
 
 # File upload
 spring.servlet.multipart.max-file-size=10MB

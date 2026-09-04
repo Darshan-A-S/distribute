@@ -54,7 +54,7 @@ public class ExcelService {
         }
     }
 
-    public List<Recipient> saveRecipients(MultipartFile file, String batchName, Map<String, String> columnMapping) {
+    public List<Recipient> saveRecipients(MultipartFile file, String batchName, Map<String, String> columnMapping, Long ownerId) {
         try (InputStream is = file.getInputStream(); Workbook wb = new XSSFWorkbook(is)) {
             Sheet sheet = wb.getSheetAt(0);
             Row headerRow = sheet.getRow(0);
@@ -101,6 +101,7 @@ public class ExcelService {
                 }
 
                 recipients.add(Recipient.builder()
+                        .ownerId(ownerId)
                         .name(name)
                         .email(email)
                         .variablesJson(mapToJson(vars))
@@ -114,19 +115,19 @@ public class ExcelService {
         }
     }
 
-    public List<Recipient> getRecipients(String batchName) {
-        return recipientRepo.findByUploadBatch(batchName);
+    public List<Recipient> getRecipients(String batchName, Long ownerId) {
+        return recipientRepo.findByOwnerIdAndUploadBatch(ownerId, batchName);
     }
 
-    public long[] getBatchStats(String batchName) {
+    public long[] getBatchStats(String batchName, Long ownerId) {
         return new long[]{
-                recipientRepo.countByUploadBatchAndSentTrue(batchName),
-                recipientRepo.countByUploadBatchAndSentFalse(batchName)
+                recipientRepo.countByOwnerIdAndUploadBatchAndSentTrue(ownerId, batchName),
+                recipientRepo.countByOwnerIdAndUploadBatchAndSentFalse(ownerId, batchName)
         };
     }
 
-    public void deleteBatch(String batchName) {
-        recipientRepo.deleteByUploadBatch(batchName);
+    public void deleteBatch(String batchName, Long ownerId) {
+        recipientRepo.deleteByOwnerIdAndUploadBatch(ownerId, batchName);
     }
 
     private String cellToString(Cell cell) {

@@ -3,8 +3,13 @@ const API = '/api'
 async function request(url, options = {}) {
   const res = await fetch(`${API}${url}`, {
     headers: { 'Content-Type': 'application/json', ...options.headers },
+    credentials: 'include',
     ...options,
   })
+  if (res.status === 401 && !url.includes('/auth/')) {
+    window.location.href = '/login'
+    throw new Error('Unauthorized')
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }))
     throw new Error(err.error || 'Request failed')
@@ -14,6 +19,12 @@ async function request(url, options = {}) {
 }
 
 export const api = {
+  // Auth
+  register: (data) => request('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
+  login: (data) => request('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
+  logout: () => request('/auth/logout', { method: 'POST' }),
+  me: () => request('/auth/me'),
+
   // Templates
   getTemplates: () => request('/templates'),
   getTemplate: (id) => request(`/templates/${id}`),
@@ -25,14 +36,14 @@ export const api = {
   previewExcel: (file) => {
     const fd = new FormData()
     fd.append('file', file)
-    return fetch(`${API}/recipients/upload/preview`, { method: 'POST', body: fd }).then(r => r.json())
+    return fetch(`${API}/recipients/upload/preview`, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json())
   },
   uploadRecipients: (file, batchName, columnMapping) => {
     const fd = new FormData()
     fd.append('file', file)
     fd.append('batchName', batchName)
     fd.append('columnMapping', JSON.stringify(columnMapping))
-    return fetch(`${API}/recipients/upload`, { method: 'POST', body: fd }).then(r => r.json())
+    return fetch(`${API}/recipients/upload`, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json())
   },
   getBatch: (name) => request(`/recipients/batch/${name}`),
   getBatchStats: (name) => request(`/recipients/batch/${name}/stats`),
@@ -41,4 +52,5 @@ export const api = {
   // Send
   send: (data) => request('/send', { method: 'POST', body: JSON.stringify(data) }),
   getSendStatus: (batchName) => request(`/send/status/${batchName}`),
+  getRecentSends: () => request('/send/recent'),
 }

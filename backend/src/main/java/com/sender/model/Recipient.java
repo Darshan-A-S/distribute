@@ -17,6 +17,9 @@ public class Recipient {
     private Long id;
 
     @Column(nullable = false)
+    private Long ownerId;
+
+    @Column(nullable = false)
     private String name;
 
     @Column(nullable = false)

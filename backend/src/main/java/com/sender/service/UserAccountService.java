@@ -1,0 +1,41 @@
+package com.sender.service;
+
+import com.sender.dto.UserDto;
+import com.sender.model.UserAccount;
+import com.sender.repository.UserAccountRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class UserAccountService implements UserDetailsService {
+
+    private final UserAccountRepository repo;
+    private final PasswordEncoder passwordEncoder;
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return repo.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    }
+
+    public UserDto register(String username, String password) {
+        String name = username == null ? "" : username.trim();
+        if (name.length() < 3) throw new RuntimeException("Username must be at least 3 characters");
+        if (password == null || password.length() < 6) throw new RuntimeException("Password must be at least 6 characters");
+        if (repo.existsByUsername(name)) throw new RuntimeException("Username already taken");
+        UserAccount user = repo.save(UserAccount.builder()
+                .username(name)
+                .password(passwordEncoder.encode(password))
+                .build());
+        return toDto(user);
+    }
+
+    public UserDto toDto(UserAccount user) {
+        return new UserDto(user.getId(), user.getUsername());
+    }
+}
