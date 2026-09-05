@@ -72,12 +72,14 @@ public class AuthController {
     }
 
     private UserDto establishSession(String username, String password, HttpServletRequest request, HttpServletResponse response) {
+        String name = username == null ? "" : username.trim();
         try {
-            Authentication auth = authManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+            Authentication auth = authManager.authenticate(new UsernamePasswordAuthenticationToken(name, password));
             SecurityContext context = SecurityContextHolder.createEmptyContext();
             context.setAuthentication(auth);
             SecurityContextHolder.setContext(context);
-            request.changeSessionId();
+            HttpSession session = request.getSession(false);
+            if (session != null) request.changeSessionId(); // rotate session id on login, avoiding fixation
             securityContextRepository.saveContext(context, request, response);
             return userService.toDto((UserAccount) auth.getPrincipal());
         } catch (RuntimeException e) {

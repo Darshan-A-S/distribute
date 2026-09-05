@@ -46,6 +46,7 @@ export const api = {
     return fetch(`${API}/recipients/upload`, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json())
   },
   getBatch: (name) => request(`/recipients/batch/${name}`),
+  getBatches: () => request('/recipients/batches'),
   getBatchStats: (name) => request(`/recipients/batch/${name}/stats`),
   deleteBatch: (name) => request(`/recipients/batch/${name}`, { method: 'DELETE' }),
 

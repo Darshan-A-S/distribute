@@ -119,6 +119,17 @@ public class ExcelService {
         return recipientRepo.findByOwnerIdAndUploadBatch(ownerId, batchName);
     }
 
+    public List<Map<String, Object>> getBatches(Long ownerId) {
+        List<Map<String, Object>> batches = new ArrayList<>();
+        for (String name : recipientRepo.findDistinctBatchesByOwnerId(ownerId)) {
+            batches.add(Map.of(
+                    "batch", name,
+                    "pending", recipientRepo.countByOwnerIdAndUploadBatchAndSentFalse(ownerId, name)
+            ));
+        }
+        return batches;
+    }
+
     public long[] getBatchStats(String batchName, Long ownerId) {
         return new long[]{
                 recipientRepo.countByOwnerIdAndUploadBatchAndSentTrue(ownerId, batchName),

@@ -1,6 +1,7 @@
 package com.sender.service;
 
 import com.sender.dto.TemplateRequest;
+import com.sender.exception.NotFoundException;
 import com.sender.model.EmailTemplate;
 import com.sender.repository.EmailTemplateRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class TemplateService {
 
     public EmailTemplate findById(Long id, Long ownerId) {
         return repo.findByIdAndOwnerId(id, ownerId)
-                .orElseThrow(() -> new RuntimeException("Template not found: " + id));
+                .orElseThrow(() -> new NotFoundException("Template not found or not owned by you"));
     }
 
     public EmailTemplate create(TemplateRequest req, Long ownerId) {

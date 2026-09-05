@@ -6,13 +6,16 @@ export default function Send() {
   const [templates, setTemplates] = useState([])
   const [selectedTemplate, setSelectedTemplate] = useState('')
   const [batchName, setBatchName] = useState('')
+  const [batches, setBatches] = useState([])
   const [sending, setSending] = useState(false)
   const [status, setStatus] = useState(null)
   const [recent, setRecent] = useState([])
 
   const loadRecent = () => api.getRecentSends().then(setRecent).catch(() => {})
+  const loadBatches = () => api.getBatches().then(setBatches).catch(() => {})
   useEffect(() => {
     api.getTemplates().then(setTemplates).catch(e => toast.error(e.message))
+    loadBatches()
     loadRecent()
   }, [])
 
@@ -40,6 +43,7 @@ export default function Send() {
       if (s.pending > 0) {
         setTimeout(pollStatus, 2000)
       } else {
+        loadBatches()
         loadRecent()
       }
     } catch (e) {}
@@ -66,13 +70,21 @@ export default function Send() {
 
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-1">Recipient Batch</label>
-          <input
-            type="text"
+          <select
             value={batchName}
             onChange={(e) => setBatchName(e.target.value)}
-            placeholder="e.g. event-2024-cert"
             className="w-full bg-gray-950 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
-          />
+          >
+            <option value="">Select a batch...</option>
+            {batches.map((b) => (
+              <option key={b.batch} value={b.batch} disabled={b.pending === 0}>
+                {b.batch} ({b.pending} unsent)
+              </option>
+            ))}
+          </select>
+          {batches.length === 0 && (
+            <p className="text-xs text-gray-500 mt-1">No batches uploaded yet — import recipients first.</p>
+          )}
         </div>
 
         <button

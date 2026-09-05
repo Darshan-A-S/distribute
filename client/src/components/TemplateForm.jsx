@@ -1,12 +1,55 @@
 import { useState } from 'react'
 
-const DEFAULT_BODY = `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-  <h2>Certificate of Participation</h2>
-  <p>Dear <strong>{name}</strong>,</p>
-  <p>Congratulations! You have successfully participated in our event.</p>
-  <p>Please find your certificate attached.</p>
-  <p>Best regards,<br/>The Team</p>
-</div>`
+const DEFAULT_BODY = `<!DOCTYPE html>
+
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Certificate</title>
+</head>
+
+<body style="margin:0; padding:0; background-color:#f5f5f5; font-family:Arial, sans-serif;">
+  <div style="max-width:600px; margin:30px auto; background:#ffffff; padding:30px; border-radius:8px;">
+
+<h2 style="margin-top:0; color:#222;">
+  Congratulations, {{name}}! 🎉
+</h2>
+
+<p style="font-size:16px; color:#444; line-height:1.6;">
+  We're pleased to share your certificate for
+  <strong>{{courseName}}</strong>.
+</p>
+
+<p style="font-size:16px; color:#444; line-height:1.6;">
+  You can download your certificate using the button below.
+</p>
+
+<div style="text-align:center; margin:30px 0;">
+  <a href="{{certificateUrl}}"
+     style="display:inline-block;
+            padding:12px 24px;
+            background:#2563eb;
+            color:#ffffff;
+            text-decoration:none;
+            border-radius:6px;
+            font-size:15px;">
+    View Certificate
+  </a>
+</div>
+
+<p style="font-size:14px; color:#777; line-height:1.5;">
+  Congratulations once again, and we wish you all the best!
+</p>
+
+<p style="font-size:14px; color:#777;">
+  Regards,<br>
+  <strong>{{organizationName}}</strong>
+</p>
+</div>
+</body>
+</html>
+`
 
 const SAMPLE_VALUES = { name: 'John Doe', email: 'john@example.com', course: 'Java Development', date: 'January 15, 2025' }
 

@@ -45,6 +45,11 @@ public class RecipientController {
         return excelService.getRecipients(batchName, ownerId(auth));
     }
 
+    @GetMapping("/batches")
+    public List<Map<String, Object>> batches(Authentication auth) {
+        return excelService.getBatches(ownerId(auth));
+    }
+
     @GetMapping("/batch/{batchName}/stats")
     public Map<String, Long> getBatchStats(@PathVariable String batchName, Authentication auth) {
         long[] stats = excelService.getBatchStats(batchName, ownerId(auth));
