@@ -62,6 +62,12 @@ public class RecipientController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/batch/{batchName}/reset")
+    public ResponseEntity<Map<String, Object>> resetBatch(@PathVariable String batchName, Authentication auth) {
+        int count = excelService.resetBatch(batchName, ownerId(auth));
+        return ResponseEntity.ok(Map.of("reset", count));
+    }
+
     private Map<String, String> parseColumnMapping(String json) {
         Map<String, String> map = new LinkedHashMap<>();
         String cleaned = json.trim();

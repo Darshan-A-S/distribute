@@ -27,6 +27,15 @@ public class UserAccount implements UserDetails {
     @Column(nullable = false)
     private String password;
 
+    @Column(unique = true)
+    private String email;
+
+    private String smtpHost;
+    private Integer smtpPort;
+    private String smtpUsername;
+    private String smtpPassword;
+    private Boolean smtpStartTls;
+
     private LocalDateTime createdAt;
 
     @PrePersist

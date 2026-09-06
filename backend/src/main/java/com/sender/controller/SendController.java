@@ -32,7 +32,15 @@ public class SendController {
 
     @PostMapping
     public ResponseEntity<Map<String, String>> send(@RequestBody SendRequest req, Authentication auth) {
-        Long ownerId = ownerId(auth);
+        UserAccount user = (UserAccount) auth.getPrincipal();
+        Long ownerId = user.getId();
+
+        if (user.getSmtpHost() == null || user.getSmtpHost().isBlank()
+                || user.getSmtpUsername() == null || user.getSmtpUsername().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error",
+                    "Configure your SMTP settings in Settings before sending"));
+        }
+
         EmailTemplate template = templateService.findById(req.getTemplateId(), ownerId);
         List<Recipient> recipients;
 
@@ -55,7 +63,7 @@ public class SendController {
                 .startedAt(LocalDateTime.now())
                 .build());
 
-        emailService.sendBatch(template, recipients, job);
+        emailService.sendBatch(template, recipients, job, (UserAccount) auth.getPrincipal());
 
         return ResponseEntity.accepted().body(Map.of(
                 "message", "Sending " + recipients.size() + " emails in background",

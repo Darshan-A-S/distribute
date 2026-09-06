@@ -3,6 +3,7 @@ import Layout from './components/Layout'
 import Templates from './pages/Templates'
 import Recipients from './pages/Recipients'
 import Send from './pages/Send'
+import Settings from './pages/Settings'
 import Login from './pages/Login'
 
 export default function App() {
@@ -13,6 +14,7 @@ export default function App() {
         <Route path="/" element={<Templates />} />
         <Route path="/recipients" element={<Recipients />} />
         <Route path="/send" element={<Send />} />
+        <Route path="/settings" element={<Settings />} />
       </Route>
     </Routes>
   )

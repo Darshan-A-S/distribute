@@ -24,6 +24,7 @@ export const api = {
   login: (data) => request('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
   logout: () => request('/auth/logout', { method: 'POST' }),
   me: () => request('/auth/me'),
+  updateSettings: (data) => request('/auth/settings', { method: 'PUT', body: JSON.stringify(data) }),
 
   // Templates
   getTemplates: () => request('/templates'),
@@ -49,6 +50,7 @@ export const api = {
   getBatches: () => request('/recipients/batches'),
   getBatchStats: (name) => request(`/recipients/batch/${name}/stats`),
   deleteBatch: (name) => request(`/recipients/batch/${name}`, { method: 'DELETE' }),
+  resetBatch: (name) => request(`/recipients/batch/${name}/reset`, { method: 'POST' }),
 
   // Send
   send: (data) => request('/send', { method: 'POST', body: JSON.stringify(data) }),

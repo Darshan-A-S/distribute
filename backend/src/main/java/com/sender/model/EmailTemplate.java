@@ -30,6 +30,15 @@ public class EmailTemplate {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String variablesJson;
 
+    @Column(columnDefinition = "TEXT")
+    private String certificateImage; // ponytail: full data-URL in TEXT, avoids mime-tracking + binary endpoint; switch to file store if images get heavy
+
+    @Column(columnDefinition = "TEXT")
+    private String certificateTexts;
+
+    private Integer certificateImageWidth;
+    private Integer certificateImageHeight;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

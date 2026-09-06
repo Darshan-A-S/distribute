@@ -1,6 +1,7 @@
 package com.sender.controller;
 
 import com.sender.dto.AuthRequest;
+import com.sender.dto.ProfileRequest;
 import com.sender.dto.UserDto;
 import com.sender.model.UserAccount;
 import com.sender.service.UserAccountService;
@@ -69,6 +70,18 @@ public class AuthController {
             return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
         }
         return ResponseEntity.ok(userService.toDto(user));
+    }
+
+    @PutMapping("/settings")
+    public ResponseEntity<?> settings(@RequestBody ProfileRequest req, Authentication auth) {
+        if (auth == null || !(auth.getPrincipal() instanceof UserAccount user)) {
+            return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
+        }
+        try {
+            return ResponseEntity.ok(userService.updateProfile(user, req));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     private UserDto establishSession(String username, String password, HttpServletRequest request, HttpServletResponse response) {

@@ -30,6 +30,10 @@ public class TemplateService {
                 .subject(req.getSubject())
                 .body(req.getBody())
                 .variablesJson(req.getVariablesJson())
+                .certificateImage(req.getCertificateImage())
+                .certificateTexts(req.getCertificateTexts())
+                .certificateImageWidth(req.getCertificateImageWidth())
+                .certificateImageHeight(req.getCertificateImageHeight())
                 .build();
         return repo.save(template);
     }
@@ -40,6 +44,10 @@ public class TemplateService {
         template.setSubject(req.getSubject());
         template.setBody(req.getBody());
         template.setVariablesJson(req.getVariablesJson());
+        template.setCertificateImage(req.getCertificateImage());
+        template.setCertificateTexts(req.getCertificateTexts());
+        template.setCertificateImageWidth(req.getCertificateImageWidth());
+        template.setCertificateImageHeight(req.getCertificateImageHeight());
         return repo.save(template);
     }
 

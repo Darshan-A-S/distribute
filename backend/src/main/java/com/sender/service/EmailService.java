@@ -3,17 +3,19 @@ package com.sender.service;
 import com.sender.model.EmailTemplate;
 import com.sender.model.Recipient;
 import com.sender.model.SendJob;
+import com.sender.model.UserAccount;
 import com.sender.repository.RecipientRepository;
 import com.sender.repository.SendJobRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.util.ByteArrayDataSource;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -27,29 +29,38 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final RecipientRepository recipientRepo;
     private final SendJobRepository sendJobRepo;
-
-    @Value("${app.email.from}")
-    private String fromAddress;
+    private final CertificateService certificateService;
 
     private static final Pattern VAR_PATTERN = Pattern.compile("\\{(\\w+)}");
 
     @Async
-    public void sendBatch(EmailTemplate template, List<Recipient> recipients, SendJob job) {
+    public void sendBatch(EmailTemplate template, List<Recipient> recipients, SendJob job, UserAccount user) {
+        JavaMailSender sender = senderFor(user);
+        String from = (user.getEmail() != null && !user.getEmail().isBlank())
+                ? user.getEmail() : user.getSmtpUsername();
         int success = 0, failed = 0;
 
         for (Recipient recipient : recipients) {
             try {
-                String subject = interpolate(template.getSubject(), recipient);
-                String body = interpolate(template.getBody(), recipient);
+                Map<String, String> vars = parseVariables(recipient.getVariablesJson());
+                String subject = interpolate(template.getSubject(), vars);
+                String body = interpolate(template.getBody(), vars);
 
-                MimeMessage message = mailSender.createMimeMessage();
+                MimeMessage message = sender.createMimeMessage();
                 MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-                helper.setFrom(fromAddress);
+                helper.setFrom(from);
                 helper.setTo(recipient.getEmail());
                 helper.setSubject(subject);
+
+                if (certificateService.hasCertificate(template)) {
+                    byte[] cert = certificateService.render(template, vars);
+                    if (cert != null) {
+                        helper.addAttachment(certificateFileName(recipient), new ByteArrayDataSource(cert, "application/pdf"));
+                    }
+                }
                 helper.setText(body, true); // true = HTML
 
-                mailSender.send(message);
+                sender.send(message);
 
                 recipient.setSent(true);
                 recipient.setSentAt(LocalDateTime.now());
@@ -72,8 +83,26 @@ public class EmailService {
         log.info("Batch complete: {} sent, {} failed out of {}", success, failed, recipients.size());
     }
 
-    private String interpolate(String template, Recipient recipient) {
-        Map<String, String> vars = parseVariables(recipient.getVariablesJson());
+    private JavaMailSender senderFor(UserAccount user) {
+        if (user.getSmtpHost() == null || user.getSmtpHost().isBlank()
+                || user.getSmtpUsername() == null || user.getSmtpUsername().isBlank()) {
+            throw new IllegalStateException("No SMTP settings configured");
+        }
+        JavaMailSenderImpl impl = new JavaMailSenderImpl();
+        impl.setHost(user.getSmtpHost());
+        impl.setPort(user.getSmtpPort() != null && user.getSmtpPort() > 0 ? user.getSmtpPort() : 587);
+        impl.setUsername(user.getSmtpUsername());
+        impl.setPassword(user.getSmtpPassword() != null ? user.getSmtpPassword() : "");
+        Properties props = impl.getJavaMailProperties();
+        props.put("mail.smtp.auth", "true");
+        String startTls = String.valueOf(user.getSmtpStartTls() == null || user.getSmtpStartTls());
+        props.put("mail.smtp.starttls.enable", startTls);
+        props.put("mail.smtp.starttls.required", startTls);
+        return impl;
+    }
+
+    private String interpolate(String template, Map<String, String> vars) {
+        if (template == null) return "";
         Matcher matcher = VAR_PATTERN.matcher(template);
         StringBuilder sb = new StringBuilder();
         while (matcher.find()) {
@@ -83,6 +112,11 @@ public class EmailService {
         }
         matcher.appendTail(sb);
         return sb.toString();
+    }
+
+    private String certificateFileName(Recipient recipient) {
+        String name = recipient.getName() == null ? "" : recipient.getName().replaceAll("[^\\w\\-]", "-").trim();
+        return (name.isBlank() ? "certificate" : name) + ".pdf";
     }
 
     private Map<String, String> parseVariables(String json) {

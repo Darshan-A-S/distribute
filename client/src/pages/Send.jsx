@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { api } from '../api/api'
 import toast from 'react-hot-toast'
+import Dropdown from '../components/Dropdown'
 
 export default function Send() {
   const [templates, setTemplates] = useState([])
@@ -56,32 +57,24 @@ export default function Send() {
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 max-w-2xl space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-1">Email Template</label>
-          <select
+          <Dropdown
             value={selectedTemplate}
-            onChange={(e) => setSelectedTemplate(e.target.value)}
-            className="w-full bg-gray-950 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
-          >
-            <option value="">Select a template...</option>
-            {templates.map((t) => (
-              <option key={t.id} value={t.id}>{t.name}</option>
-            ))}
-          </select>
+            onChange={setSelectedTemplate}
+            placeholder="Select a template..."
+            ariaLabel="Email template"
+            options={templates.map((t) => ({ value: String(t.id), label: t.name }))}
+          />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-1">Recipient Batch</label>
-          <select
+          <Dropdown
             value={batchName}
-            onChange={(e) => setBatchName(e.target.value)}
-            className="w-full bg-gray-950 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
-          >
-            <option value="">Select a batch...</option>
-            {batches.map((b) => (
-              <option key={b.batch} value={b.batch} disabled={b.pending === 0}>
-                {b.batch} ({b.pending} unsent)
-              </option>
-            ))}
-          </select>
+            onChange={setBatchName}
+            placeholder="Select a batch..."
+            ariaLabel="Recipient batch"
+            options={batches.map((b) => ({ value: b.batch, label: `${b.batch} (${b.pending} unsent)`, disabled: b.pending === 0 }))}
+          />
           {batches.length === 0 && (
             <p className="text-xs text-gray-500 mt-1">No batches uploaded yet — import recipients first.</p>
           )}

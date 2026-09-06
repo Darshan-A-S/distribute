@@ -1,5 +1,6 @@
 package com.sender.service;
 
+import com.sender.dto.ProfileRequest;
 import com.sender.dto.UserDto;
 import com.sender.model.UserAccount;
 import com.sender.repository.UserAccountRepository;
@@ -36,6 +37,17 @@ public class UserAccountService implements UserDetailsService {
     }
 
     public UserDto toDto(UserAccount user) {
-        return new UserDto(user.getId(), user.getUsername());
+        return new UserDto(user.getId(), user.getUsername(), user.getEmail(),
+                user.getSmtpHost(), user.getSmtpPort(), user.getSmtpUsername());
+    }
+
+    public UserDto updateProfile(UserAccount user, ProfileRequest req) {
+        if (req.email() != null) user.setEmail(req.email().isBlank() ? null : req.email().trim());
+        if (req.smtpHost() != null) user.setSmtpHost(req.smtpHost().isBlank() ? null : req.smtpHost().trim());
+        if (req.smtpPort() != null) user.setSmtpPort(req.smtpPort());
+        if (req.smtpUsername() != null) user.setSmtpUsername(req.smtpUsername().isBlank() ? null : req.smtpUsername().trim());
+        if (req.smtpPassword() != null && !req.smtpPassword().isBlank()) user.setSmtpPassword(req.smtpPassword());
+        if (req.startTls() != null) user.setSmtpStartTls(req.startTls());
+        return toDto(repo.save(user));
     }
 }

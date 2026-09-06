@@ -1,4 +1,5 @@
 import { NavLink, Outlet, Navigate } from 'react-router-dom'
+import { LogOut, Settings } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 const links = [
@@ -6,6 +7,15 @@ const links = [
   { to: '/recipients', label: 'Recipients' },
   { to: '/send', label: 'Send' },
 ]
+
+function avatarUrl() {
+  let seed = localStorage.getItem('avatarSeed')
+  if (!seed) {
+    seed = Math.random().toString(36).slice(2, 10)
+    localStorage.setItem('avatarSeed', seed)
+  }
+  return `https://api.dicebear.com/9.x/thumbs/svg?seed=${seed}`
+}
 
 export default function Layout() {
   const { user, loading, logout } = useAuth()
@@ -32,13 +42,32 @@ export default function Layout() {
           </NavLink>
         ))}
         <div className="mt-auto px-3 pt-4 border-t border-gray-800">
-          <p className="text-sm text-gray-300 truncate">{user.username}</p>
-          <button
-            onClick={logout}
-            className="mt-2 text-sm text-red-400 hover:text-red-300"
-          >
-            Logout
-          </button>
+          <div className="flex items-center gap-3">
+            <img
+              src={avatarUrl()}
+              alt="Profile"
+              className="w-10 h-10 rounded-lg shrink-0 bg-gray-800"
+            />
+            <p className="text-sm text-gray-300 truncate flex-1">{user.username}</p>
+            <NavLink
+              to="/settings"
+              title="Settings"
+              aria-label="Settings"
+              className={({ isActive }) =>
+                isActive ? 'text-indigo-400' : 'text-gray-400 hover:text-white'
+              }
+            >
+              <Settings className="w-5 h-5" />
+            </NavLink>
+            <button
+              onClick={logout}
+              title="Logout"
+              aria-label="Logout"
+              className="text-red-400 hover:text-red-300"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </aside>
       <main className="flex-1 p-8 overflow-auto">
