@@ -37,90 +37,89 @@ export default function Settings() {
 
   return (
     <div className="max-w-xl">
-      <h1 className="text-2xl font-bold mb-6">Settings</h1>
+      <div className="mb-6">
+        <h1 className="page-title">Settings</h1>
+        <p className="text-sm text-slate-500 mt-1">Configure your sender identity and mail server.</p>
+      </div>
 
       <form onSubmit={submit} className="space-y-5">
-        <section className="bg-gray-900 border border-gray-800 rounded-lg p-5">
-          <h2 className="text-lg font-semibold mb-1">Sender identity</h2>
-          <p className="text-sm text-gray-500 mb-4">The "from" address shown on emails you send.</p>
+        <section className="card p-5">
+          <h2 className="text-lg font-semibold text-slate-100 mb-1">Sender identity</h2>
+          <p className="text-sm text-slate-500 mb-4">The "from" address shown on emails you send.</p>
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">Your email</label>
+            <label className="label">Your email</label>
             <input
               type="email"
               value={form.email}
               onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
               placeholder="you@gmail.com"
-              className="w-full bg-gray-950 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+              className="input"
             />
           </div>
         </section>
 
-        <section className="bg-gray-900 border border-gray-800 rounded-lg p-5">
-          <h2 className="text-lg font-semibold mb-1">SMTP server</h2>
-          <p className="text-sm text-gray-500 mb-4">
+        <section className="card p-5">
+          <h2 className="text-lg font-semibold text-slate-100 mb-1">SMTP server</h2>
+          <p className="text-sm text-slate-500 mb-4">
             Use your own mail server so emails are genuinely sent from your account (e.g. Gmail
-            host <span className="text-gray-300">smtp.gmail.com</span>, port <span className="text-gray-300">587</span>, app password).
+            host <span className="text-slate-300">smtp.gmail.com</span>, port <span className="text-slate-300">587</span>, app password).
             Leave empty to use the default server.
           </p>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">SMTP host</label>
+              <label className="label">SMTP host</label>
               <input
                 type="text"
                 value={form.smtpHost}
                 onChange={set('smtpHost')}
                 placeholder="smtp.gmail.com"
-                className="w-full bg-gray-950 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+                className="input"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">Port</label>
+              <label className="label">Port</label>
               <input
                 type="number"
                 value={form.smtpPort}
                 onChange={set('smtpPort')}
                 placeholder="587"
-                className="w-full bg-gray-950 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+                className="input"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">Username</label>
+              <label className="label">Username</label>
               <input
                 type="text"
                 value={form.smtpUsername}
                 onChange={(e) => setForm((f) => ({ ...f, smtpUsername: e.target.value }))}
                 placeholder="you@gmail.com"
-                className="w-full bg-gray-950 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+                className="input"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">App password</label>
+              <label className="label">App password</label>
               <input
                 type="password"
                 value={form.smtpPassword}
                 onChange={(e) => setForm((f) => ({ ...f, smtpPassword: e.target.value }))}
                 placeholder="Leave blank to keep current"
                 autoComplete="new-password"
-                className="w-full bg-gray-950 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+                className="input"
               />
             </div>
           </div>
-          <label className="flex items-center gap-2 mt-4 text-sm text-gray-400 cursor-pointer">
+          <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-slate-400">
             <input
               type="checkbox"
               checked={form.startTls}
               onChange={(e) => setForm((f) => ({ ...f, startTls: e.target.checked }))}
-              className="rounded border-gray-700 bg-gray-950"
+              className="h-4 w-4 rounded border-white/20 bg-slate-950 accent-teal-500"
             />
             Use STARTTLS
           </label>
         </section>
 
-        <button
-          type="submit"
-          disabled={busy}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded text-sm font-medium transition-colors disabled:opacity-50"
-        >
+        <button type="submit" disabled={busy} className="btn-primary">
           {busy ? 'Saving...' : 'Save settings'}
         </button>
       </form>

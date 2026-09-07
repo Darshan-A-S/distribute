@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
+import { Send, LogIn, UserPlus } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
 
@@ -28,52 +29,70 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-950">
-      <form onSubmit={submit} className="bg-gray-900 border border-gray-800 rounded-lg p-8 w-full max-w-sm space-y-4">
-        <h1 className="text-xl font-bold text-indigo-400 text-center">Certificate Sender</h1>
-        <h2 className="text-lg font-semibold text-center">
-          {mode === 'login' ? 'Sign in' : 'Create account'}
-        </h2>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 p-4">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-1/2 top-0 h-[480px] w-[720px] -translate-x-1/2 rounded-full bg-teal-500/10 blur-[120px]" />
+        <div className="absolute bottom-0 right-0 h-[360px] w-[480px] rounded-full bg-indigo-500/10 blur-[120px]" />
+      </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-400 mb-1">Username</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            autoFocus
-            className="w-full bg-gray-950 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
-          />
+      <form onSubmit={submit} className="relative w-full max-w-sm">
+        <div className="card p-8">
+          <div className="mb-8 flex flex-col items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-emerald-600 shadow-[0_8px_24px_-6px_rgba(20,184,166,0.6)]">
+              <Send className="h-6 w-6 text-teal-950" />
+            </div>
+            <h1 className="text-lg font-semibold tracking-tight text-slate-50">Certificate Sender</h1>
+            <h2 className="text-sm font-medium text-slate-400">
+              {mode === 'login' ? 'Sign in to your account' : 'Create your account'}
+            </h2>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="label" htmlFor="username">Username</label>
+              <input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                autoFocus
+                className="input"
+              />
+            </div>
+
+            <div>
+              <label className="label" htmlFor="password">Password</label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                className="input"
+              />
+            </div>
+
+            <button type="submit" disabled={busy} className="btn-primary w-full">
+              {busy ? (
+                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-teal-950/30 border-t-teal-950" />
+              ) : mode === 'login' ? (
+                <><LogIn className="h-4 w-4" /> Sign in</>
+              ) : (
+                <><UserPlus className="h-4 w-4" /> Create account</>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
+              className="w-full text-center text-sm font-medium text-teal-400 transition-colors hover:text-teal-300"
+            >
+              {mode === 'login' ? 'Need an account? Create one' : 'Already have an account? Sign in'}
+            </button>
+          </div>
         </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-400 mb-1">Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-            className="w-full bg-gray-950 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={busy}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors disabled:opacity-50"
-        >
-          {busy ? 'Please wait...' : mode === 'login' ? 'Sign in' : 'Create account'}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
-          className="w-full text-sm text-indigo-400 hover:text-indigo-300"
-        >
-          {mode === 'login' ? 'Need an account? Create one' : 'Already have an account? Sign in'}
-        </button>
       </form>
     </div>
   )

@@ -39,6 +39,7 @@ export default function CertificateEditor({ value, onChange, variables = [] }) {
   const wrapRef = useRef(null)
   const dragRef = useRef(null)
   const imgRef = useRef(null)
+  const fileInputRef = useRef(null)
 
   const { image, imageWidth, imageHeight, texts } = value
   const fontOptions = [...new Set([...DEFAULT_FONTS, ...texts.map((t) => t.fontFamily)])]
@@ -158,6 +159,7 @@ export default function CertificateEditor({ value, onChange, variables = [] }) {
       }).catch(() => {})
     }
     reader.readAsDataURL(file)
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   const addText = () => {
@@ -190,21 +192,22 @@ export default function CertificateEditor({ value, onChange, variables = [] }) {
     <div className="flex flex-col gap-4 min-h-0 flex-1">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex gap-2 items-center">
-          <label className="px-3 py-1.5 rounded text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer inline-flex items-center gap-1.5">
+          <button type="button" onClick={() => fileInputRef.current?.click()} className="btn-primary">
             <ImagePlus className="w-4 h-4" />
             Upload Certificate (PDF)
-            <input
-              type="file"
-              accept=".pdf,application/pdf"
-              onChange={(e) => handlePdf(e.target.files[0])}
-              className="hidden"
-            />
-          </label>
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,application/pdf"
+            onChange={(e) => handlePdf(e.target.files[0])}
+            className="hidden"
+          />
           {image && (
             <button
               type="button"
               onClick={addText}
-              className="px-3 py-1.5 rounded text-sm font-medium bg-gray-700 hover:bg-gray-600 text-white inline-flex items-center gap-1.5"
+              className="btn-secondary"
             >
               <Type className="w-4 h-4" />
               Add Text
@@ -217,7 +220,7 @@ export default function CertificateEditor({ value, onChange, variables = [] }) {
             <button
               type="button"
               onClick={() => { setPreviewMode(!previewMode); setSelectedId(null) }}
-              className={`px-3 py-1.5 rounded text-sm font-medium inline-flex items-center gap-1.5 transition-colors ${previewMode ? 'bg-indigo-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-white'}`}
+              className={`btn-secondary ${previewMode ? '!border-teal-400/40 !bg-teal-400/10 !text-teal-300' : ''}`}
             >
               {previewMode ? <PenLine className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               {previewMode ? 'Edit' : 'Preview'}
@@ -226,7 +229,7 @@ export default function CertificateEditor({ value, onChange, variables = [] }) {
               <button
                 type="button"
                 onClick={() => onChange({ ...value, image: null, preview: null, imageWidth: null, imageHeight: null, texts: [] })}
-                className="px-3 py-1.5 rounded text-sm font-medium text-red-400 hover:text-red-300 hover:bg-gray-800"
+                className="btn-danger !px-3"
               >
                 Remove PDF
               </button>
@@ -236,21 +239,26 @@ export default function CertificateEditor({ value, onChange, variables = [] }) {
       </div>
 
       <div className="flex-1 min-h-0 flex gap-4">
-        <div ref={wrapRef} className="flex-1 min-h-0 bg-gray-950 border border-gray-800 rounded-lg p-4 flex items-center justify-center overflow-auto">
+        <div ref={wrapRef} className="flex-1 min-h-0 bg-slate-950/50 border border-white/[0.06] rounded-lg p-4 flex items-center justify-center overflow-auto">
           {image ? (
             <canvas
               ref={canvasRef}
               width={viewW}
               height={viewH}
               onMouseDown={onMouseDown}
-              className={`max-w-full ${previewMode ? 'cursor-default' : 'cursor-move'} shadow-lg`}
+              className={`max-w-full ${previewMode ? 'cursor-default' : 'cursor-move'} shadow-2xl ring-1 ring-white/10`}
               style={{ width: viewW, height: viewH }}
             />
           ) : (
-            <div className="text-center text-gray-600 space-y-2">
-              <ImagePlus className="w-12 h-12 mx-auto opacity-50" />
-              <p className="text-sm">Upload a certificate PDF to start placing text.</p>
-              <p className="text-xs text-gray-700">Text is filled with each recipient's data when sending. First page is used; fonts map to standard PDF fonts.</p>
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="mx-auto space-y-2 text-center text-slate-600 cursor-pointer select-none rounded-lg border-2 border-dashed border-white/10 p-8 hover:border-teal-400/40 hover:bg-teal-400/[0.03] transition-colors"
+            >
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white/[0.04] ring-1 ring-white/10">
+                <ImagePlus className="h-7 w-7 opacity-60" />
+              </div>
+              <p className="text-sm text-slate-300 font-medium">Click to upload a certificate PDF</p>
+              <p className="text-xs text-slate-600">Text is filled with each recipient's data when sending. First page is used; fonts map to standard PDF fonts.</p>
             </div>
           )}
         </div>
@@ -259,75 +267,75 @@ export default function CertificateEditor({ value, onChange, variables = [] }) {
           {image && (
             <>
               {selected ? (
-                <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 space-y-3">
+                <div className="card space-y-3 p-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-semibold">Text Properties</h4>
-                    <button type="button" onClick={() => removeText(selected.id)} title="Delete text" className="text-red-400 hover:text-red-300">
+                    <h4 className="text-sm font-semibold text-slate-200">Text Properties</h4>
+                    <button type="button" onClick={() => removeText(selected.id)} title="Delete text" className="icon-btn text-red-400/80 hover:bg-red-500/10 hover:text-red-300">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
 
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">Text / Variable</label>
+                    <label className="label !mb-1 !text-xs">Text / Variable</label>
                     <input
                       type="text"
                       value={selected.variable}
                       onChange={(e) => updateSelected({ variable: e.target.value })}
                       list="cert-variables"
-                      className="w-full bg-gray-950 border border-gray-700 rounded px-2 py-1 text-xs font-mono focus:outline-none focus:border-indigo-500"
+                      className="input font-mono text-xs"
                     />
                     <datalist id="cert-variables">
                       {variables.map((v) => <option key={v} value={`{${v}}`} />)}
                     </datalist>
-                    <p className="text-[10px] text-gray-600 mt-1">Use {'{variable}'} or write static text</p>
+                    <p className="text-[10px] text-slate-600 mt-1">Use {'{variable}'} or write static text</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-xs text-gray-400 mb-1">Font Size</label>
+                      <label className="label !mb-1 !text-xs">Font Size</label>
                       <input
                         type="number"
                         min="10"
                         max="200"
                         value={selected.fontSize}
                         onChange={(e) => updateSelected({ fontSize: Number(e.target.value) || 36 })}
-                        className="w-full bg-gray-950 border border-gray-700 rounded px-2 py-1 text-xs focus:outline-none focus:border-indigo-500"
+                        className="input text-xs"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-400 mb-1">Color</label>
+                      <label className="label !mb-1 !text-xs">Color</label>
                       <div className="flex items-center gap-1.5">
                         <input
                           type="color"
                           value={selected.color}
                           onChange={(e) => updateSelected({ color: e.target.value })}
-                          className="w-8 h-8 bg-gray-950 border border-gray-700 rounded cursor-pointer"
+                          className="h-8 w-8 cursor-pointer rounded border border-white/10 bg-slate-950"
                         />
-                        <span className="text-xs font-mono text-gray-400">{selected.color}</span>
+                        <span className="font-mono text-xs text-slate-400">{selected.color}</span>
                       </div>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">Font</label>
+                    <label className="label !mb-1 !text-xs">Font</label>
                     <select
                       value={selected.fontFamily}
                       onChange={(e) => updateSelected({ fontFamily: e.target.value })}
-                      className="w-full bg-gray-950 border border-gray-700 rounded px-2 py-1 text-xs focus:outline-none focus:border-indigo-500"
+                      className="input text-xs"
                     >
                       {fontOptions.map((f) => <option key={f} value={f}>{f}</option>)}
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">Alignment</label>
+                    <label className="label !mb-1 !text-xs">Alignment</label>
                     <div className="grid grid-cols-3 gap-1">
                       {['left', 'center', 'right'].map((a) => (
                         <button
                           type="button"
                           key={a}
                           onClick={() => updateSelected({ align: a })}
-                          className={`text-xs py-1 rounded capitalize ${selected.align === a ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
+                          className={`text-xs py-1 rounded capitalize ${selected.align === a ? 'bg-teal-500 text-teal-950 font-semibold' : 'bg-white/[0.05] text-slate-400 hover:bg-white/[0.08]'}`}
                         >
                           {a}
                         </button>
@@ -336,25 +344,25 @@ export default function CertificateEditor({ value, onChange, variables = [] }) {
                   </div>
                 </div>
               ) : (
-                <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 text-center">
-                  <p className="text-xs text-gray-500">Click a text on the image to edit its properties.</p>
+                <div className="card p-4 text-center">
+                  <p className="text-xs text-slate-500">Click a text on the image to edit its properties.</p>
                 </div>
               )}
 
-              <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-                <h4 className="text-sm font-semibold mb-2">Texts ({texts.length})</h4>
+              <div className="card p-4">
+                <h4 className="text-sm font-semibold text-slate-200 mb-2">Texts ({texts.length})</h4>
                 {texts.length === 0 ? (
-                  <p className="text-xs text-gray-600">No text placed yet. Click "Add Text".</p>
+                  <p className="text-xs text-slate-600">No text placed yet. Click "Add Text".</p>
                 ) : (
                   <div className="space-y-1">
                     {texts.map((t) => (
                       <div
                         key={t.id}
                         onClick={() => setSelectedId(t.id)}
-                        className={`flex items-center justify-between gap-2 px-2 py-1 rounded text-xs cursor-pointer ${t.id === selectedId ? 'bg-indigo-600/20 border border-indigo-500/40' : 'bg-gray-950 hover:bg-gray-800 border border-gray-800'}`}
+                        className={`flex items-center justify-between gap-2 px-2 py-1 rounded text-xs cursor-pointer border ${t.id === selectedId ? 'border-teal-400/40 bg-teal-400/10' : 'border-white/[0.06] bg-slate-950/50 hover:bg-white/[0.04]'}`}
                       >
-                        <span className="font-mono truncate">{t.variable}</span>
-                        <button type="button" onClick={(e) => { e.stopPropagation(); removeText(t.id) }} className="text-red-400 hover:text-red-300 shrink-0">
+                        <span className="truncate font-mono text-slate-300">{t.variable}</span>
+                        <button type="button" onClick={(e) => { e.stopPropagation(); removeText(t.id) }} className="shrink-0 text-red-400/80 hover:text-red-300">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -363,14 +371,14 @@ export default function CertificateEditor({ value, onChange, variables = [] }) {
                 )}
               </div>
 
-              <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-                <h4 className="text-sm font-semibold mb-2">Available Variables</h4>
+              <div className="card p-4">
+                <h4 className="text-sm font-semibold text-slate-200 mb-2">Available Variables</h4>
                 {variables.length === 0 ? (
-                  <p className="text-xs text-gray-600">Add variables in the email body step.</p>
+                  <p className="text-xs text-slate-600">Add variables in the email body step.</p>
                 ) : (
                   <div className="flex flex-wrap gap-1">
                     {variables.map((v) => (
-                      <span key={v} className="text-[10px] px-1.5 py-0.5 rounded bg-gray-950 border border-gray-800 font-mono text-gray-400">{"{"}{v}{"}"}</span>
+                      <span key={v} className="badge">{"{"}{v}{"}"}</span>
                     ))}
                   </div>
                 )}
@@ -380,7 +388,7 @@ export default function CertificateEditor({ value, onChange, variables = [] }) {
         </div>
       </div>
 
-      <p className="text-xs text-gray-600">
+      <p className="text-xs text-slate-600">
         Text is saved by position (% of the page) so it scales to any size or PDF page. Variables (like {defaultVar}) are filled from recipient data when sending.
       </p>
     </div>

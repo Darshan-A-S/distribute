@@ -51,12 +51,15 @@ export default function Send() {
   }
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-6">Send Emails</h2>
+    <div className="max-w-2xl">
+      <div className="mb-6">
+        <h2 className="page-title">Send Emails</h2>
+        <p className="text-sm text-slate-500 mt-1">Dispatch your template to every recipient in a batch.</p>
+      </div>
 
-      <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 max-w-2xl space-y-4">
+      <div className="card p-6 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-1">Email Template</label>
+          <label className="label">Email Template</label>
           <Dropdown
             value={selectedTemplate}
             onChange={setSelectedTemplate}
@@ -67,7 +70,7 @@ export default function Send() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-1">Recipient Batch</label>
+          <label className="label">Recipient Batch</label>
           <Dropdown
             value={batchName}
             onChange={setBatchName}
@@ -76,30 +79,35 @@ export default function Send() {
             options={batches.map((b) => ({ value: b.batch, label: `${b.batch} (${b.pending} unsent)`, disabled: b.pending === 0 }))}
           />
           {batches.length === 0 && (
-            <p className="text-xs text-gray-500 mt-1">No batches uploaded yet — import recipients first.</p>
+            <p className="text-xs text-slate-500 mt-1.5">No batches uploaded yet — import recipients first.</p>
           )}
         </div>
 
         <button
           onClick={handleSend}
           disabled={sending || !selectedTemplate || !batchName}
-          className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded text-sm font-medium transition-colors disabled:opacity-50"
+          className="btn-primary w-full sm:w-auto"
         >
-          {sending ? 'Sending...' : 'Send Emails'}
+          {sending ? (
+            <><span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-teal-950/30 border-t-teal-950" /> Sending...</>
+          ) : (
+            'Send Emails'
+          )}
         </button>
       </div>
 
       {status && (
-        <div className="mt-6 bg-gray-900 border border-gray-800 rounded-lg p-4 max-w-2xl">
-          <h3 className="font-semibold mb-2">Sending Progress</h3>
-          <div className="flex gap-6 text-sm">
-            <span className="text-green-400">Sent: {status.sent}</span>
-            <span className="text-yellow-400">Pending: {status.pending}</span>
+        <div className="card mt-6 p-5">
+          <h3 className="mb-3 text-sm font-semibold text-slate-200">Sending Progress</h3>
+          <div className="flex gap-5 text-sm">
+            <span className="font-medium text-emerald-400">Sent: {status.sent}</span>
+            <span className="font-medium text-amber-400">Pending: {status.pending}</span>
+            {status.failed > 0 && <span className="font-medium text-red-400">Failed: {status.failed}</span>}
           </div>
           {status.pending > 0 && (
-            <div className="mt-2 w-full bg-gray-800 rounded-full h-2">
+            <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-white/[0.06]">
               <div
-                className="bg-indigo-500 h-2 rounded-full transition-all"
+                className="h-full rounded-full bg-gradient-to-r from-teal-400 to-emerald-400 transition-all duration-300"
                 style={{ width: `${(status.sent / (status.sent + status.pending)) * 100}%` }}
               />
             </div>
@@ -107,21 +115,21 @@ export default function Send() {
         </div>
       )}
 
-      <div className="mt-6 max-w-2xl">
-        <h3 className="text-lg font-semibold mb-3">Recent Sends</h3>
+      <div className="mt-8">
+        <h3 className="mb-3 text-lg font-semibold tracking-tight text-slate-100">Recent Sends</h3>
         {recent.length === 0 ? (
-          <p className="text-gray-500 text-sm">No sends yet.</p>
+          <div className="card p-8 text-center text-sm text-slate-500">No sends yet.</div>
         ) : (
           <div className="space-y-2">
             {recent.map((j) => (
-              <div key={j.id} className="bg-gray-900 border border-gray-800 rounded-lg p-4 flex items-center justify-between">
-                <div>
-                  <p className="font-medium">{j.templateName || 'Template'}</p>
-                  <p className="text-sm text-gray-400">Batch: {j.batchName} · {new Date(j.startedAt).toLocaleString()}</p>
+              <div key={j.id} className="card flex items-center justify-between p-4 transition-colors duration-150 hover:border-white/15">
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-slate-100">{j.templateName || 'Template'}</p>
+                  <p className="truncate text-sm text-slate-500">Batch: {j.batchName} · {new Date(j.startedAt).toLocaleString()}</p>
                 </div>
-                <div className="text-right text-sm">
-                  <p className="text-green-400">{j.success} sent{failedCount(j) ? ` · ${failedCount(j)} failed` : ''}</p>
-                  <p className={`text-gray-400 ${j.status === 'DONE' ? '' : 'text-yellow-400'}`}>
+                <div className="shrink-0 text-right text-sm">
+                  <p className="font-medium text-emerald-400">{j.success} sent{failedCount(j) ? ` · ${failedCount(j)} failed` : ''}</p>
+                  <p className={`${j.status === 'DONE' ? 'text-slate-500' : 'text-amber-400'}`}>
                     {j.status} · {j.total} total
                   </p>
                 </div>

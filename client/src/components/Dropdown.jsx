@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { ChevronDown, CircleCheck } from 'lucide-react'
 
 export default function Dropdown({ value, onChange, options = [], placeholder, ariaLabel }) {
   const [open, setOpen] = useState(false)
@@ -25,17 +26,15 @@ export default function Dropdown({ value, onChange, options = [], placeholder, a
         aria-expanded={open}
         aria-label={ariaLabel}
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between gap-2 bg-gray-950 border border-gray-700 rounded px-3 py-2 text-sm text-left focus:outline-none focus:border-indigo-500"
+        className="input flex items-center justify-between gap-2 text-left"
       >
-        <span className={selected ? 'text-gray-100' : 'text-gray-500'}>{selected ? selected.label : placeholder}</span>
-        <svg className={`w-4 h-4 text-gray-400 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
+        <span className={`truncate ${selected ? 'text-slate-100' : 'text-slate-500'}`}>{selected ? selected.label : placeholder}</span>
+        <ChevronDown className={`h-4 w-4 shrink-0 text-slate-400 transition-transform duration-150 ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div role="listbox" className="absolute z-20 mt-1 w-full bg-gray-900 border border-gray-800 rounded-lg shadow-xl max-h-60 overflow-auto">
+        <div role="listbox" className="absolute z-20 mt-1.5 max-h-60 w-full overflow-auto rounded-lg border border-white/10 bg-slate-900 p-1 shadow-2xl">
           {options.length === 0 ? (
-            <p className="px-3 py-2 text-sm text-gray-500">No options</p>
+            <p className="px-3 py-2 text-sm text-slate-500">No options</p>
           ) : (
             options.map((o, i) => (
               <button
@@ -45,15 +44,16 @@ export default function Dropdown({ value, onChange, options = [], placeholder, a
                 aria-selected={o.value === value}
                 disabled={o.disabled}
                 onClick={() => { onChange(o.value); setOpen(false) }}
-                className={`block w-full text-left px-3 py-2 text-sm ${
+                className={`flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm ${
                   o.disabled
-                    ? 'text-gray-600 cursor-not-allowed'
+                    ? 'cursor-not-allowed text-slate-600'
                     : o.value === value
-                      ? 'bg-indigo-600/20 text-indigo-300'
-                      : 'text-gray-200 hover:bg-gray-800'
+                      ? 'bg-teal-400/10 text-teal-300'
+                      : 'text-slate-200 hover:bg-white/[0.06]'
                 }`}
               >
-                {o.label}
+                <span className="flex-1">{o.label}</span>
+                {o.value === value && <CircleCheck className="h-4 w-4 shrink-0 text-teal-400" />}
               </button>
             ))
           )}

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Trash2, SquarePen } from 'lucide-react'
+import { Trash2, SquarePen, Plus } from 'lucide-react'
 import { api } from '../api/api'
 import toast from 'react-hot-toast'
 import TemplateForm from '../components/TemplateForm'
@@ -32,7 +32,7 @@ function TemplatePreview({ body }) {
       sandbox=""
       onLoad={onLoad}
       srcDoc={body.replace(/\{(\w+)\}/g, (_, v) => SAMPLE_VALUES[v] || 'Sample Value')}
-      className="mt-3 w-full h-64 bg-white rounded border border-gray-800"
+      className="mt-3 w-full h-64 bg-white rounded-lg border border-white/10 shrink-0"
     />
   )
 }
@@ -87,12 +87,16 @@ export default function Templates() {
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">Email Templates</h2>
+        <div>
+          <h2 className="page-title">Email Templates</h2>
+          <p className="text-sm text-slate-500 mt-1">Create HTML templates with dynamic {'{variables}'} for your certificates.</p>
+        </div>
         <button
           onClick={() => { setEditing(null); setShowForm(true) }}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
+          className="btn-primary"
         >
-          + New Template
+          <Plus className="h-4 w-4" />
+          New Template
         </button>
       </div>
 
@@ -105,20 +109,26 @@ export default function Templates() {
       ) : (
         <>
           {templates.length === 0 && (
-            <p className="text-gray-500">No templates yet. Create one to get started.</p>
+            <div className="card flex flex-col items-center gap-3 p-12 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-400/10">
+                <SquarePen className="h-6 w-6 text-teal-400" />
+              </div>
+              <p className="font-medium text-slate-200">No templates yet</p>
+              <p className="text-sm text-slate-500">Create one to get started.</p>
+            </div>
           )}
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {templates.map((t) => (
-              <div key={t.id} className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+              <div key={t.id} className="card group p-4 transition-colors duration-150 hover:border-white/15">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold text-lg">{t.name}</h3>
-                    <p className="text-sm text-gray-400">Subject: {t.subject}</p>
+                  <div className="min-w-0">
+                    <h3 className="truncate font-semibold text-lg text-slate-100">{t.name}</h3>
+                    <p className="truncate text-sm text-slate-500">Subject: {t.subject}</p>
                   </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => handleEdit(t)} title="Edit" aria-label="Edit" className="text-indigo-400 hover:text-indigo-300"><SquarePen className="w-5 h-5" /></button>
-                    <button onClick={() => setConfirmDelete(t)} title="Delete" aria-label="Delete" className="text-red-400 hover:text-red-300"><Trash2 className="w-5 h-5" /></button>
+                  <div className="flex gap-1">
+                    <button onClick={() => handleEdit(t)} title="Edit" aria-label="Edit" className="icon-btn"><SquarePen className="h-4 w-4" /></button>
+                    <button onClick={() => setConfirmDelete(t)} title="Delete" aria-label="Delete" className="icon-btn text-red-400/80 hover:bg-red-500/10 hover:text-red-300"><Trash2 className="h-4 w-4" /></button>
                   </div>
                 </div>
                 <TemplatePreview body={t.body} />

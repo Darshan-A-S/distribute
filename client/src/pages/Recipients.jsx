@@ -105,24 +105,27 @@ export default function Recipients() {
   useEffect(() => { loadBatches() }, [])
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-6">Upload Recipients</h2>
+    <div className="max-w-2xl">
+      <div className="mb-6">
+        <h2 className="page-title">Upload Recipients</h2>
+        <p className="text-sm text-slate-500 mt-1">Import an Excel file and map columns to template variables.</p>
+      </div>
 
-      <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 max-w-2xl">
+      <div className="card p-6">
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">Batch Name</label>
+            <label className="label">Batch Name</label>
             <input
               type="text"
               value={batchName}
               onChange={(e) => setBatchName(e.target.value)}
               placeholder="e.g. event-2024-cert"
-              className="w-full bg-gray-950 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+              className="input"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">Excel File (.xlsx)</label>
+            <label className="label">Excel File (.xlsx)</label>
             <input
               type="file"
               accept=".xlsx,.xls"
@@ -132,65 +135,65 @@ export default function Recipients() {
                 setPreview(null)
                 if (f) handlePreview(f)
               }}
-              className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 file:cursor-pointer"
+              className="block w-full cursor-pointer text-sm text-slate-400 file:mr-4 file:rounded-lg file:border-0 file:bg-teal-500 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-teal-950 file:cursor-pointer hover:file:bg-teal-400"
             />
           </div>
 
           {loading && file && !preview && (
-            <p className="text-sm text-gray-500">Previewing {file.name}...</p>
+            <p className="text-sm text-slate-500">Previewing {file.name}...</p>
           )}
 
           {preview && (
             <div className="space-y-4">
-              <p className="text-sm text-gray-400">{preview.totalRows} rows found</p>
+              <p className="text-sm text-slate-400">{preview.totalRows} rows found</p>
 
               {/* Column Mapping */}
-              <div className="bg-gray-950 rounded p-4 space-y-2">
-                <p className="text-sm font-medium text-gray-300 mb-2">Map columns to template variables:</p>
+              <div className="rounded-lg border border-white/[0.06] bg-slate-950/50 p-4 space-y-2">
+                <p className="text-sm font-medium text-slate-300 mb-2">Map columns to template variables:</p>
                 {preview.headers.map((h) => (
                   <div key={h} className="flex items-center gap-3">
-                    <span className="text-xs text-gray-500 w-32 truncate" title={h}>{h}</span>
-                    <span className="text-xs text-gray-600">→</span>
+                    <span className="w-32 truncate text-xs text-slate-500" title={h}>{h}</span>
+                    <span className="text-xs text-slate-600">→</span>
                     <input
                       type="text"
                       value={columnMapping[h] || ''}
                       onChange={(e) => setColumnMapping({ ...columnMapping, [h]: e.target.value })}
                       placeholder="template variable"
-                      className="flex-1 bg-gray-900 border border-gray-700 rounded px-2 py-1 text-xs focus:outline-none focus:border-indigo-500"
+                      className="input flex-1 text-xs"
                     />
                   </div>
                 ))}
               </div>
 
               {/* Preview table */}
-              <div className="max-h-64 overflow-auto bg-gray-950 rounded">
+              <div className="max-h-64 overflow-auto rounded-lg border border-white/[0.06] bg-slate-950/50">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-gray-800">
+                    <tr className="border-b border-white/[0.06]">
                       {preview.headers.map((h) => (
-                        <th key={h} className="px-3 py-2 text-left text-gray-400 font-medium">{h}</th>
+                        <th key={h} className="px-3 py-2 text-left font-medium text-slate-400">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {preview.rows.slice(0, 5).map((row, i) => (
-                      <tr key={i} className="border-b border-gray-800/50">
+                      <tr key={i} className="border-b border-white/[0.04]">
                         {preview.headers.map((h) => (
-                          <td key={h} className="px-3 py-2 text-gray-300">{row[h]}</td>
+                          <td key={h} className="px-3 py-2 text-slate-300">{row[h]}</td>
                         ))}
                       </tr>
                     ))}
                   </tbody>
                 </table>
                 {preview.rows.length > 5 && (
-                  <p className="text-center text-gray-600 text-xs py-2">...and {preview.rows.length - 5} more rows</p>
+                  <p className="py-2 text-center text-xs text-slate-600">...and {preview.rows.length - 5} more rows</p>
                 )}
               </div>
 
               <button
                 onClick={handleUpload}
                 disabled={loading || !batchName}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors disabled:opacity-50"
+                className="btn-primary"
               >
                 {loading ? 'Uploading...' : 'Upload & Save'}
               </button>
@@ -200,24 +203,24 @@ export default function Recipients() {
       </div>
 
       {stats && currentBatch && (
-        <div className="mt-6 bg-gray-900 border border-gray-800 rounded-lg p-4 max-w-2xl">
-          <h3 className="font-semibold mb-2">Current Batch: {currentBatch}</h3>
+        <div className="card mt-6 p-4">
+          <h3 className="mb-2 font-semibold text-slate-200">Current Batch: {currentBatch}</h3>
           <div className="flex gap-6 text-sm">
-            <span className="text-green-400">Sent: {stats.sent}</span>
-            <span className="text-yellow-400">Pending: {stats.pending}</span>
+            <span className="font-medium text-emerald-400">Sent: {stats.sent}</span>
+            <span className="font-medium text-amber-400">Pending: {stats.pending}</span>
           </div>
         </div>
       )}
 
       <div className="mt-8">
-        <h3 className="text-lg font-semibold mb-3">Uploaded Batches</h3>
+        <h3 className="mb-3 text-lg font-semibold tracking-tight text-slate-100">Uploaded Batches</h3>
         {batches.length === 0 ? (
-          <p className="text-gray-500 text-sm">No batches uploaded yet.</p>
+          <div className="card p-8 text-center text-sm text-slate-500">No batches uploaded yet.</div>
         ) : (
-          <div className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden max-w-2xl">
+          <div className="card overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-800 text-left text-xs text-gray-400">
+                <tr className="border-b border-white/[0.06] text-left text-xs text-slate-400">
                   <th className="px-4 py-3 font-medium">Batch</th>
                   <th className="px-4 py-3 font-medium">Total</th>
                   <th className="px-4 py-3 font-medium">Sent</th>
@@ -227,29 +230,29 @@ export default function Recipients() {
               </thead>
               <tbody>
                 {batches.map((b) => (
-                  <tr key={b.batch} className="border-b border-gray-800/50 last:border-0">
-                    <td className="px-4 py-3 text-gray-200">{b.batch}</td>
-                    <td className="px-4 py-3">{b.total}</td>
-                    <td className="px-4 py-3 text-green-400">{b.sent}</td>
-                    <td className="px-4 py-3 text-yellow-400">{b.pending}</td>
+                  <tr key={b.batch} className="border-b border-white/[0.04] last:border-0">
+                    <td className="px-4 py-3 text-slate-200">{b.batch}</td>
+                    <td className="px-4 py-3 text-slate-300">{b.total}</td>
+                    <td className="px-4 py-3 text-emerald-400">{b.sent}</td>
+                    <td className="px-4 py-3 text-amber-400">{b.pending}</td>
                     <td className="px-4 py-3 text-right whitespace-nowrap">
                       <button
                         onClick={() => setConfirmAction({ kind: 'reset', name: b.batch })}
                         disabled={loading}
                         title="Reset"
                         aria-label="Reset"
-                        className="text-indigo-400 hover:text-indigo-300 disabled:opacity-50 mr-3"
+                        className="icon-btn mr-2 text-teal-400/80 hover:bg-teal-400/10 hover:text-teal-300 disabled:opacity-50"
                       >
-                        <RotateCcw className="w-5 h-5" />
+                        <RotateCcw className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => setConfirmAction({ kind: 'delete', name: b.batch })}
                         disabled={loading}
                         title="Delete"
                         aria-label="Delete"
-                        className="text-red-400 hover:text-red-300 disabled:opacity-50"
+                        className="icon-btn text-red-400/80 hover:bg-red-500/10 hover:text-red-300 disabled:opacity-50"
                       >
-                        <Trash2 className="w-5 h-5" />
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </td>
                   </tr>
