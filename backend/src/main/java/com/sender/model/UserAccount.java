@@ -27,6 +27,9 @@ public class UserAccount implements UserDetails {
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
+    private String role = "USER";
+
     @Column(unique = true)
     private String email;
 
@@ -45,7 +48,11 @@ public class UserAccount implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        return List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + role));
+    }
+
+    public boolean isAdmin() {
+        return "ADMIN".equals(role);
     }
 
     @Override

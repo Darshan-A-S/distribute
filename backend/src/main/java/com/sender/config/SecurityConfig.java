@@ -12,6 +12,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 
 @Configuration
@@ -47,6 +48,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/logout", "/api/auth/me").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/templates/library/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/templates/library/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/templates/*/publish").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .exceptionHandling(h -> h.authenticationEntryPoint((request, response, ex) -> {
                     response.setStatus(401);

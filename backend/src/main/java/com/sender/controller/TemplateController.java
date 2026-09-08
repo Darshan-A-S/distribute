@@ -23,6 +23,16 @@ public class TemplateController {
         return service.findAll(ownerId(auth));
     }
 
+    @GetMapping("/library")
+    public List<EmailTemplate> library() {
+        return service.findLibrary();
+    }
+
+    @PostMapping("/{id}/save")
+    public EmailTemplate saveFromLibrary(@PathVariable Long id, Authentication auth) {
+        return service.saveFromLibrary(id, ownerId(auth));
+    }
+
     @GetMapping("/{id}")
     public EmailTemplate get(@PathVariable Long id, Authentication auth) {
         return service.findById(id, ownerId(auth));
@@ -30,7 +40,8 @@ public class TemplateController {
 
     @PostMapping
     public EmailTemplate create(@RequestBody TemplateRequest req, Authentication auth) {
-        return service.create(req, ownerId(auth));
+        UserAccount user = (UserAccount) auth.getPrincipal();
+        return service.create(req, user.getId(), user.isAdmin());
     }
 
     @PutMapping("/{id}")
@@ -41,6 +52,22 @@ public class TemplateController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id, Authentication auth) {
         service.delete(id, ownerId(auth));
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/publish")
+    public EmailTemplate publish(@PathVariable Long id, Authentication auth) {
+        return service.publish(id, ownerId(auth));
+    }
+
+    @PutMapping("/library/{id}")
+    public EmailTemplate updateLibrary(@PathVariable Long id, @RequestBody TemplateRequest req) {
+        return service.updateLibrary(id, req);
+    }
+
+    @DeleteMapping("/library/{id}")
+    public ResponseEntity<Void> deleteLibrary(@PathVariable Long id) {
+        service.deleteLibrary(id);
         return ResponseEntity.noContent().build();
     }
 

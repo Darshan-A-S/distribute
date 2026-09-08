@@ -1,5 +1,5 @@
 import { NavLink, Outlet, Navigate } from 'react-router-dom'
-import { LogOut, Newspaper, Users, Send, Settings } from 'lucide-react'
+import { LogOut, Newspaper, Users, Send, Settings, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 const links = [
@@ -7,6 +7,27 @@ const links = [
   { to: '/recipients', label: 'Recipients', icon: Users },
   { to: '/send', label: 'Send', icon: Send },
 ]
+
+function AdminLink({ to, label, icon: Icon }) {
+  return (
+    <div className="mt-6">
+      <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600">Admin</p>
+      <NavLink
+        to={to}
+        className={({ isActive }) =>
+          `group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-150 ${
+            isActive
+              ? 'bg-white/[0.06] text-teal-300 shadow-[0_0_0_1px_rgba(129,193,75,0.25)_inset]'
+              : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-100'
+          }`
+        }
+      >
+        <Icon className="h-4 w-4 text-slate-500 group-hover:text-slate-300" />
+        {label}
+      </NavLink>
+    </div>
+  )
+}
 
 function avatarUrl() {
   let seed = localStorage.getItem('avatarSeed')
@@ -59,6 +80,8 @@ export default function Layout() {
             </NavLink>
           ))}
         </nav>
+
+        {user.role === 'ADMIN' && <AdminLink to="/admin/users" label="Users" icon={ShieldCheck} />}
 
         <div className="mt-auto pt-4">
           <div className="flex items-center gap-3 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2.5">

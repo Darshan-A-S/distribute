@@ -117,12 +117,7 @@ public class CertificateService {
     private String interpolate(String text, Map<String, String> vars) {
         if (text == null) return "";
         Matcher m = VAR_PATTERN.matcher(text);
-        StringBuffer sb = new StringBuffer();
-        while (m.find()) {
-            m.appendReplacement(sb, Matcher.quoteReplacement(vars.getOrDefault(m.group(1), m.group(0))));
-        }
-        m.appendTail(sb);
-        return sb.toString();
+        return m.matches() ? vars.getOrDefault(m.group(1), "") : "";
     }
 
     @Data

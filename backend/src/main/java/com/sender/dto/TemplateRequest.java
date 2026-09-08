@@ -12,4 +12,5 @@ public class TemplateRequest {
     private String certificateTexts;
     private Integer certificateImageWidth;
     private Integer certificateImageHeight;
+    private Boolean builtIn;
 }

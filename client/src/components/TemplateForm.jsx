@@ -3,39 +3,7 @@ import { Mail, Award, ChevronLeft, ChevronRight } from 'lucide-react'
 import CertificateEditor from './CertificateEditor'
 
 const DEFAULT_BODY = `
-<!DOCTYPE html>
-
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Certificate</title>
-</head>
-<body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: Arial, sans-serif;">
-<div style="max-width: 600px; margin: 40px auto; background-color: #ffffff; padding: 30px; border-radius: 8px;">
-    <p style="color: #555555; font-size: 16px; line-height: 1.6;">
-        Thank you for participating in our event. We truly appreciate
-        your time and involvement.
-    </p>
-
-    <p style="color: #555555; font-size: 16px; line-height: 1.6;">
-        Please find your certificate of participation attached to this email.
-    </p>
-
-    <p style="color: #555555; font-size: 16px; line-height: 1.6;">
-        We hope you enjoyed the experience and look forward to seeing you
-        again in our future events!
-    </p>
-
-    <p style="margin-top: 30px; color: #333333;">
-        Best regards,<br>
-        <strong>Event Team</strong>
-    </p>
-
-</div>
-</body>
-</html>
-
+<div style="font-family:Arial,Helvetica,sans-serif;max-width:600px;margin:auto;border:2px solid #81c14b;border-radius:12px;overflow:hidden"><div style="background:#2e933c;color:#fff;padding:24px 32px;text-align:center"><h2 style="margin:0">Course Completion</h2></div><div style="padding:32px;color:#1f2937"><p>Dear {name},</p><p>Congratulations on completing <strong>{course}</strong> on {date}. Your certificate is attached to this email — keep it as proof of your achievement.</p><p>Regards,<br/>Certificate Team</p></div><div style="background:#f0f9eb;padding:12px 32px;text-align:center;color:#204e4a;font-size:12px">Verified by Certificate Sender</div></div>
 `
 
 const SAMPLE_VALUES = { name: 'John Doe', email: 'john@example.com', course: 'Java Development', date: 'January 15, 2025' }
@@ -46,7 +14,7 @@ const STEPS = [
 ]
 
 function extractVars(subject, body) {
-  const names = new Set(['name'])
+  const names = new Set()
   for (const text of [subject, body]) {
     for (const m of text.matchAll(/\{(\w+)\}/g)) names.add(m[1])
   }
@@ -72,7 +40,7 @@ function parseTexts(json) {
   }
 }
 
-export default function TemplateForm({ initial, onSave, onCancel }) {
+export default function TemplateForm({ initial, onSave, onCancel, isAdmin, forked }) {
   const [name, setName] = useState(initial?.name || '')
   const [subject, setSubject] = useState(initial?.subject || '')
   const [body, setBody] = useState(initial?.body || DEFAULT_BODY)
@@ -82,6 +50,7 @@ export default function TemplateForm({ initial, onSave, onCancel }) {
     imageHeight: initial?.certificateImageHeight || null,
     texts: parseTexts(initial?.certificateTexts),
   }))
+  const [publish, setPublish] = useState(false)
   const [step, setStep] = useState(1)
 
   const variables = useMemo(() => JSON.stringify(extractVars(subject, body)), [subject, body])
@@ -102,6 +71,7 @@ export default function TemplateForm({ initial, onSave, onCancel }) {
       certificateImageWidth: cert.imageWidth,
       certificateImageHeight: cert.imageHeight,
       certificateTexts: JSON.stringify(cert.texts),
+      builtIn: publish,
     })
   }
 
@@ -134,7 +104,7 @@ export default function TemplateForm({ initial, onSave, onCancel }) {
           </button>
           {step === 2 && (
             <button type="submit" className="btn-primary">
-              {initial ? 'Update Template' : 'Create Template'}
+              {initial ? (forked ? 'Save Template' : 'Update Template') : 'Create Template'}
             </button>
           )}
         </div>
@@ -144,7 +114,7 @@ export default function TemplateForm({ initial, onSave, onCancel }) {
         <div className="flex-1 min-h-0 grid grid-cols-2 gap-6">
           <div className="card flex flex-col gap-3 p-6 min-h-0">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-lg text-slate-100">{initial ? 'Edit Template' : 'New Template'}</h3>
+              <h3 className="font-semibold text-lg text-slate-100">{initial ? (forked ? 'Save Template' : 'Edit Template') : 'New Template'}</h3>
               <button
                 type="button"
                 onClick={() => setStep(2)}
@@ -179,6 +149,19 @@ export default function TemplateForm({ initial, onSave, onCancel }) {
                 />
               </div>
             </div>
+
+            {isAdmin && !initial?.builtIn && (
+              <label className="flex items-center gap-2.5 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={publish}
+                  onChange={(e) => setPublish(e.target.checked)}
+                  className="h-4 w-4 accent-teal-500"
+                />
+                <span className="text-sm font-medium text-slate-200">Publish to Template Library</span>
+                <span className="text-xs text-slate-500">{initial ? 'This template becomes shared when saved' : 'All users can browse, customize and save it'}</span>
+              </label>
+            )}
 
             <p className="text-xs text-slate-600">Use {'{variable}'} for dynamic values, e.g. {'{name}'}, {'{email}'}</p>
 

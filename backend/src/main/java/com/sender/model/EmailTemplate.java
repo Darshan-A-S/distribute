@@ -16,8 +16,9 @@ public class EmailTemplate {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private Long ownerId;
+    private Long ownerId; // null for built-in library templates
+
+    private Boolean builtIn;
 
     @Column(nullable = false)
     private String name;

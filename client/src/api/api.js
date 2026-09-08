@@ -26,12 +26,24 @@ export const api = {
   me: () => request('/auth/me'),
   updateSettings: (data) => request('/auth/settings', { method: 'PUT', body: JSON.stringify(data) }),
 
+  // Admin
+  getUsers: () => request('/admin/users'),
+  deleteUser: (id) => request(`/admin/users/${id}`, { method: 'DELETE' }),
+  setUserRole: (id, role) => request(`/admin/users/${id}/role`, { method: 'PUT', body: JSON.stringify({ role }) }),
+
   // Templates
   getTemplates: () => request('/templates'),
   getTemplate: (id) => request(`/templates/${id}`),
   createTemplate: (data) => request('/templates', { method: 'POST', body: JSON.stringify(data) }),
   updateTemplate: (id, data) => request(`/templates/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  publishTemplate: (id) => request(`/templates/${id}/publish`, { method: 'POST' }),
   deleteTemplate: (id) => request(`/templates/${id}`, { method: 'DELETE' }),
+
+  // Template library
+  getLibraryTemplates: () => request('/templates/library'),
+  saveLibraryTemplate: (id) => request(`/templates/${id}/save`, { method: 'POST' }),
+  updateLibraryTemplate: (id, data) => request(`/templates/library/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteLibraryTemplate: (id) => request(`/templates/library/${id}`, { method: 'DELETE' }),
 
   // Recipients
   previewExcel: (file) => {

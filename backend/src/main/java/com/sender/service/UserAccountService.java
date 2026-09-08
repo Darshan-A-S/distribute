@@ -11,6 +11,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class UserAccountService implements UserDetailsService {
@@ -32,13 +34,37 @@ public class UserAccountService implements UserDetailsService {
         UserAccount user = repo.save(UserAccount.builder()
                 .username(name)
                 .password(passwordEncoder.encode(password))
+                .role("USER")
                 .build());
         return toDto(user);
     }
 
+    public List<UserDto> findAll() {
+        return repo.findAll().stream().map(this::toDto).toList();
+    }
+
+    public void deleteUser(Long id, Long selfId) {
+        if (id.equals(selfId)) throw new RuntimeException("Cannot delete your own account");
+        repo.deleteById(id);
+    }
+
+    public void setRole(Long id, String role, Long selfId) {
+        if (!"USER".equals(role) && !"ADMIN".equals(role)) {
+            throw new RuntimeException("Role must be USER or ADMIN");
+        }
+        UserAccount user = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (id.equals(selfId) && "USER".equals(role)) {
+            throw new RuntimeException("You cannot remove your own admin role");
+        }
+        user.setRole(role);
+        repo.save(user);
+    }
+
     public UserDto toDto(UserAccount user) {
         return new UserDto(user.getId(), user.getUsername(), user.getEmail(),
-                user.getSmtpHost(), user.getSmtpPort(), user.getSmtpUsername());
+                user.getSmtpHost(), user.getSmtpPort(), user.getSmtpUsername(),
+                user.getRole(), user.getCreatedAt());
     }
 
     public UserDto updateProfile(UserAccount user, ProfileRequest req) {

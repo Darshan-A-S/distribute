@@ -9,4 +9,6 @@ import java.util.Optional;
 public interface EmailTemplateRepository extends JpaRepository<EmailTemplate, Long> {
     List<EmailTemplate> findByOwnerId(Long ownerId);
     Optional<EmailTemplate> findByIdAndOwnerId(Long id, Long ownerId);
+    List<EmailTemplate> findByBuiltInTrue();
+    Optional<EmailTemplate> findByIdAndBuiltInTrue(Long id);
 }

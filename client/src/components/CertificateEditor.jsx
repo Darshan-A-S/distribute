@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { ImagePlus, Type, Trash2, Eye, PenLine } from 'lucide-react'
+import Dropdown from './Dropdown'
 import * as pdfjsLib from 'pdfjs-dist'
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 
@@ -7,7 +8,6 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
 
 const SAMPLE = { name: 'John Doe', courseName: 'Advanced Java', organizationName: 'Tech Academy', email: 'john@example.com', date: 'January 15, 2025' }
 const DEFAULT_FONTS = ['Georgia, serif', 'Arial, sans-serif', 'Times New Roman, serif', 'Brush Script MT, cursive', 'Courier New, monospace']
-const PREVIEW_W = 1000
 
 const resolve = (variable) => {
   const m = variable.match(/^\{(\w+)\}$/)
@@ -19,22 +19,28 @@ async function rasterizePdf(dataUrl) {
   const bytes = new Uint8Array(bin.length)
   for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
   const pdf = await pdfjsLib.getDocument({ data: bytes }).promise
+  if (pdf.numPages !== 1) {
+    pdf.destroy()
+    throw new Error('Certificate PDF must contain exactly one page')
+  }
   const page = await pdf.getPage(1)
-  const vp = page.getViewport({ scale: Math.max(1, PREVIEW_W / page.getViewport({ scale: 1 }).width) })
+  const design = page.getViewport({ scale: 1 })
+  const hi = page.getViewport({ scale: 3 })
   const canvas = document.createElement('canvas')
-  canvas.width = vp.width
-  canvas.height = vp.height
-  await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise
+  canvas.width = hi.width
+  canvas.height = hi.height
+  await page.render({ canvasContext: canvas.getContext('2d'), viewport: hi }).promise
   pdf.destroy()
-  return { preview: canvas.toDataURL('image/png'), width: vp.width, height: vp.height }
+  return { preview: canvas.toDataURL('image/png'), width: design.width, height: design.height }
 }
 
 export default function CertificateEditor({ value, onChange, variables = [] }) {
   const [selectedId, setSelectedId] = useState(null)
   const [dragId, setDragId] = useState(null)
   const [previewMode, setPreviewMode] = useState(false)
-  const [imageLoaded, setImageLoaded] = useState(false)
   const [containerWidth, setContainerWidth] = useState(0)
+  const [uploadError, setUploadError] = useState(null)
+  const [imageLoaded, setImageLoaded] = useState(false)
   const canvasRef = useRef(null)
   const wrapRef = useRef(null)
   const dragRef = useRef(null)
@@ -73,11 +79,23 @@ export default function CertificateEditor({ value, onChange, variables = [] }) {
   const viewH = imageHeight ? viewW * (imageHeight / imageWidth) : 0
   const scale = viewW && imageWidth ? viewW / imageWidth : 1
 
+  useEffect(() => {
+    const c = canvasRef.current
+    if (!c || !viewW || !viewH) return
+    const dpr = window.devicePixelRatio || 1
+    const w = Math.round(viewW * dpr)
+    const h = Math.round(viewH * dpr)
+    if (c.width !== w || c.height !== h) { c.width = w; c.height = h }
+  }, [viewW, viewH])
+
   const draw = useCallback(() => {
     const c = canvasRef.current
     const ctx = c?.getContext('2d')
     if (!ctx || !viewW || !viewH) return
+    const dpr = window.devicePixelRatio || 1
+    ctx.setTransform(1, 0, 0, 1, 0, 0)
     ctx.clearRect(0, 0, c.width, c.height)
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     if (imgRef.current) ctx.drawImage(imgRef.current, 0, 0, viewW, viewH)
 
     texts.forEach((t) => {
@@ -88,7 +106,7 @@ export default function CertificateEditor({ value, onChange, variables = [] }) {
       ctx.textAlign = t.align
       ctx.textBaseline = 'middle'
       ctx.fillStyle = t.color
-      const label = previewMode ? resolve(t.variable) : (t.variable || 'text')
+      const label = definedVar(t.variable) ? (previewMode ? resolve(t.variable) : t.variable) : ''
       ctx.fillText(label, px, py)
 
       if (t.id === selectedId && !previewMode) {
@@ -150,13 +168,21 @@ export default function CertificateEditor({ value, onChange, variables = [] }) {
 
   const handlePdf = (file) => {
     if (!file) return
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError('PDF too large. Maximum size is 10 MB.')
+      return
+    }
     const reader = new FileReader()
     reader.onload = () => {
       const url = reader.result
       rasterizePdf(url).then(({ preview, width, height }) => {
         onChange({ ...value, image: url, preview, imageWidth: width, imageHeight: height })
         setSelectedId(null)
-      }).catch(() => {})
+        setUploadError(null)
+      }).catch((e) => {
+        setUploadError(e.message || 'Invalid PDF')
+        if (fileInputRef.current) fileInputRef.current.value = ''
+      })
     }
     reader.readAsDataURL(file)
     if (fileInputRef.current) fileInputRef.current.value = ''
@@ -187,6 +213,10 @@ export default function CertificateEditor({ value, onChange, variables = [] }) {
 
   const selected = texts.find((t) => t.id === selectedId)
   const defaultVar = variables[0] ? `{${variables[0]}}` : 'Custom Text'
+  const definedVar = (s) => {
+    const m = /^\{(\w+)\}$/.exec(s)
+    return m ? variables.includes(m[1]) : false
+  }
 
   return (
     <div className="flex flex-col gap-4 min-h-0 flex-1">
@@ -210,6 +240,8 @@ export default function CertificateEditor({ value, onChange, variables = [] }) {
             </button>
           )}
         </div>
+
+        {uploadError && <p className="text-xs text-red-400 w-full">{uploadError}</p>}
 
         {image && (
           <div className="flex items-center gap-2">
@@ -239,8 +271,6 @@ export default function CertificateEditor({ value, onChange, variables = [] }) {
           {image ? (
             <canvas
               ref={canvasRef}
-              width={viewW}
-              height={viewH}
               onMouseDown={onMouseDown}
               className={`max-w-full ${previewMode ? 'cursor-default' : 'cursor-move'} shadow-2xl ring-1 ring-white/10`}
               style={{ width: viewW, height: viewH }}
@@ -274,17 +304,14 @@ export default function CertificateEditor({ value, onChange, variables = [] }) {
 
                   <div>
                     <label className="label !mb-1 !text-xs">Text / Variable</label>
-                    <input
-                      type="text"
-                      value={selected.variable}
-                      onChange={(e) => updateSelected({ variable: e.target.value })}
-                      list="cert-variables"
-                      className="input font-mono text-xs"
+                    <Dropdown
+                      value={definedVar(selected.variable) ? selected.variable : ''}
+                      onChange={(v) => updateSelected({ variable: v })}
+                      options={variables.map((v) => ({ value: `{${v}}`, label: `{${v}}` }))}
+                      placeholder={definedVar(selected.variable) ? selected.variable : 'No variable — select one'}
+                      ariaLabel="Certificate text variable"
                     />
-                    <datalist id="cert-variables">
-                      {variables.map((v) => <option key={v} value={`{${v}}`} />)}
-                    </datalist>
-                    <p className="text-[10px] text-slate-600 mt-1">Use {'{variable}'} or write static text</p>
+                    <p className="text-[10px] text-slate-600 mt-1">Only variables from the template's email body are available</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
