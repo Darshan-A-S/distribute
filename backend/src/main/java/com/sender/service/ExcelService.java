@@ -140,6 +140,7 @@ public class ExcelService {
         };
     }
 
+    @Transactional
     public void deleteBatch(String batchName, Long ownerId) {
         recipientRepo.deleteByOwnerIdAndUploadBatch(ownerId, batchName);
     }

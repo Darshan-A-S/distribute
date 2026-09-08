@@ -192,10 +192,6 @@ export default function CertificateEditor({ value, onChange, variables = [] }) {
     <div className="flex flex-col gap-4 min-h-0 flex-1">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex gap-2 items-center">
-          <button type="button" onClick={() => fileInputRef.current?.click()} className="btn-primary">
-            <ImagePlus className="w-4 h-4" />
-            Upload Certificate (PDF)
-          </button>
           <input
             ref={fileInputRef}
             type="file"
@@ -252,7 +248,7 @@ export default function CertificateEditor({ value, onChange, variables = [] }) {
           ) : (
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="mx-auto space-y-2 text-center text-slate-600 cursor-pointer select-none rounded-lg border-2 border-dashed border-white/10 p-8 hover:border-teal-400/40 hover:bg-teal-400/[0.03] transition-colors"
+              className="w-full h-full flex flex-col items-center justify-center space-y-2 text-center text-slate-600 cursor-pointer select-none rounded-lg border-2 border-dashed border-white/10 p-8 hover:border-teal-400/40 hover:bg-teal-400/[0.03] transition-colors"
             >
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white/[0.04] ring-1 ring-white/10">
                 <ImagePlus className="h-7 w-7 opacity-60" />
@@ -263,10 +259,11 @@ export default function CertificateEditor({ value, onChange, variables = [] }) {
           )}
         </div>
 
-        <div className="w-72 flex flex-col gap-3 min-h-0 overflow-auto">
-          {image && (
-            <>
-              {selected ? (
+        {image && (
+          <div className="w-72 flex flex-col gap-3 min-h-0 overflow-auto">
+            {image && (
+              <>
+                {selected ? (
                 <div className="card space-y-3 p-4">
                   <div className="flex items-center justify-between">
                     <h4 className="text-sm font-semibold text-slate-200">Text Properties</h4>
@@ -386,11 +383,8 @@ export default function CertificateEditor({ value, onChange, variables = [] }) {
             </>
           )}
         </div>
+        )}
       </div>
-
-      <p className="text-xs text-slate-600">
-        Text is saved by position (% of the page) so it scales to any size or PDF page. Variables (like {defaultVar}) are filled from recipient data when sending.
-      </p>
     </div>
   )
 }

@@ -13,8 +13,8 @@
   body {
     @apply font-sans bg-slate-950 text-slate-100;
     background-image:
-      radial-gradient(1200px 600px at 80% -10%, rgba(20, 184, 166, 0.07), transparent 60%),
-      radial-gradient(900px 500px at -10% 110%, rgba(99, 102, 241, 0.06), transparent 60%);
+      radial-gradient(1200px 600px at 80% -10%, rgba(129, 193, 75, 0.07), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(32, 78, 74, 0.35), transparent 60%);
     background-attachment: fixed;
   }
 
@@ -29,7 +29,7 @@
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-1.5 rounded-lg bg-teal-500 px-4 py-2 text-sm font-semibold text-teal-950 shadow-[0_4px_16px_-6px_rgba(20,184,166,0.5)] transition-colors duration-150 hover:bg-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/40 active:bg-teal-600 disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg bg-teal-500 px-4 py-2 text-sm font-semibold text-slate-50 shadow-[0_4px_16px_-6px_rgba(87,170,67,0.5)] transition-colors duration-150 hover:bg-teal-400 hover:text-teal-950 focus:outline-none focus:ring-2 focus:ring-teal-400/40 active:bg-teal-600 disabled:pointer-events-none disabled:opacity-50;
   }
 
   .btn-secondary {

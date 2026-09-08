@@ -27,7 +27,7 @@ export default function Layout() {
     <div className="h-screen flex">
       <aside className="w-56 shrink-0 border-r border-white/[0.06] bg-slate-950/50 p-4 flex flex-col gap-1">
         <div className="flex items-center gap-2.5 px-3 pb-6">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-teal-400 to-emerald-600 shadow-[0_4px_16px_-4px_rgba(20,184,166,0.6)]">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-teal-400 to-teal-600 shadow-[0_4px_16px_-4px_rgba(46,147,60,0.6)]">
             <Send className="h-4 w-4 text-teal-950" />
           </div>
           <div className="leading-tight">
@@ -45,7 +45,7 @@ export default function Layout() {
               className={({ isActive }) =>
                 `group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-150 ${
                   isActive
-                    ? 'bg-white/[0.06] text-teal-300 shadow-[0_0_0_1px_rgba(20,184,166,0.25)_inset]'
+                    ? 'bg-white/[0.06] text-teal-300 shadow-[0_0_0_1px_rgba(129,193,75,0.25)_inset]'
                     : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-100'
                 }`
               }

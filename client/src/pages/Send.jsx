@@ -100,14 +100,14 @@ export default function Send() {
         <div className="card mt-6 p-5">
           <h3 className="mb-3 text-sm font-semibold text-slate-200">Sending Progress</h3>
           <div className="flex gap-5 text-sm">
-            <span className="font-medium text-emerald-400">Sent: {status.sent}</span>
+            <span className="font-medium text-teal-300">Sent: {status.sent}</span>
             <span className="font-medium text-amber-400">Pending: {status.pending}</span>
             {status.failed > 0 && <span className="font-medium text-red-400">Failed: {status.failed}</span>}
           </div>
           {status.pending > 0 && (
             <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-white/[0.06]">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-teal-400 to-emerald-400 transition-all duration-300"
+                className="h-full rounded-full bg-gradient-to-r from-teal-400 to-teal-600 transition-all duration-300"
                 style={{ width: `${(status.sent / (status.sent + status.pending)) * 100}%` }}
               />
             </div>
@@ -128,7 +128,7 @@ export default function Send() {
                   <p className="truncate text-sm text-slate-500">Batch: {j.batchName} · {new Date(j.startedAt).toLocaleString()}</p>
                 </div>
                 <div className="shrink-0 text-right text-sm">
-                  <p className="font-medium text-emerald-400">{j.success} sent{failedCount(j) ? ` · ${failedCount(j)} failed` : ''}</p>
+                  <p className="font-medium text-teal-300">{j.success} sent{failedCount(j) ? ` · ${failedCount(j)} failed` : ''}</p>
                   <p className={`${j.status === 'DONE' ? 'text-slate-500' : 'text-amber-400'}`}>
                     {j.status} · {j.total} total
                   </p>

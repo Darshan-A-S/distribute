@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Trash2, RotateCcw } from 'lucide-react'
 import { api } from '../api/api'
 import toast from 'react-hot-toast'
@@ -10,8 +10,7 @@ export default function Recipients() {
   const [batchName, setBatchName] = useState('')
   const [columnMapping, setColumnMapping] = useState({})
   const [loading, setLoading] = useState(false)
-  const [stats, setStats] = useState(null)
-  const [currentBatch, setCurrentBatch] = useState('')
+  const fileRef = useRef(null)
   const [batches, setBatches] = useState([])
   const [confirmAction, setConfirmAction] = useState(null)
 
@@ -43,27 +42,17 @@ export default function Recipients() {
     try {
       const result = await api.uploadRecipients(file, batchName, columnMapping)
       toast.success(`Uploaded ${result.count} recipients to "${result.batchName}"`)
-      setCurrentBatch(result.batchName)
-      const s = await api.getBatchStats(result.batchName)
-      setStats(s)
+      await loadBatches()
       setPreview(null)
       setFile(null)
+      setBatchName('')
+      fileRef.current.value = ''
     } catch (e) {
       toast.error(e.message)
     } finally {
       setLoading(false)
     }
   }
-
-  const loadStats = async () => {
-    if (!currentBatch) return
-    try {
-      const s = await api.getBatchStats(currentBatch)
-      setStats(s)
-    } catch (e) {}
-  }
-
-  useEffect(() => { loadStats() }, [currentBatch])
 
   const loadBatches = async () => {
     try {
@@ -79,7 +68,6 @@ export default function Recipients() {
     try {
       await api.deleteBatch(name)
       toast.success(`Deleted batch "${name}"`)
-      if (currentBatch === name) { setCurrentBatch(''); setStats(null) }
       await loadBatches()
     } catch (e) {
       toast.error(e.message)
@@ -93,7 +81,6 @@ export default function Recipients() {
     try {
       const result = await api.resetBatch(name)
       toast.success(`Reset ${result.reset} recipients in "${name}"`)
-      if (currentBatch === name) await loadStats()
       await loadBatches()
     } catch (e) {
       toast.error(e.message)
@@ -127,6 +114,7 @@ export default function Recipients() {
           <div>
             <label className="label">Excel File (.xlsx)</label>
             <input
+              ref={fileRef}
               type="file"
               accept=".xlsx,.xls"
               onChange={(e) => {
@@ -202,16 +190,6 @@ export default function Recipients() {
         </div>
       </div>
 
-      {stats && currentBatch && (
-        <div className="card mt-6 p-4">
-          <h3 className="mb-2 font-semibold text-slate-200">Current Batch: {currentBatch}</h3>
-          <div className="flex gap-6 text-sm">
-            <span className="font-medium text-emerald-400">Sent: {stats.sent}</span>
-            <span className="font-medium text-amber-400">Pending: {stats.pending}</span>
-          </div>
-        </div>
-      )}
-
       <div className="mt-8">
         <h3 className="mb-3 text-lg font-semibold tracking-tight text-slate-100">Uploaded Batches</h3>
         {batches.length === 0 ? (
@@ -233,7 +211,7 @@ export default function Recipients() {
                   <tr key={b.batch} className="border-b border-white/[0.04] last:border-0">
                     <td className="px-4 py-3 text-slate-200">{b.batch}</td>
                     <td className="px-4 py-3 text-slate-300">{b.total}</td>
-                    <td className="px-4 py-3 text-emerald-400">{b.sent}</td>
+                    <td className="px-4 py-3 text-teal-300">{b.sent}</td>
                     <td className="px-4 py-3 text-amber-400">{b.pending}</td>
                     <td className="px-4 py-3 text-right whitespace-nowrap">
                       <button

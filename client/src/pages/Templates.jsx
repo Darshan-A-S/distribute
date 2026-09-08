@@ -89,15 +89,16 @@ export default function Templates() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="page-title">Email Templates</h2>
-          <p className="text-sm text-slate-500 mt-1">Create HTML templates with dynamic {'{variables}'} for your certificates.</p>
         </div>
-        <button
-          onClick={() => { setEditing(null); setShowForm(true) }}
-          className="btn-primary"
-        >
-          <Plus className="h-4 w-4" />
-          New Template
-        </button>
+        {!showForm && (
+          <button
+            onClick={() => { setEditing(null); setShowForm(true) }}
+            className="btn-primary"
+          >
+            <Plus className="h-4 w-4" />
+            New Template
+          </button>
+        )}
       </div>
 
       {showForm ? (

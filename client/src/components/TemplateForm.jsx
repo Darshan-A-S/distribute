@@ -2,55 +2,40 @@ import { useState, useMemo } from 'react'
 import { Mail, Award, ChevronLeft, ChevronRight } from 'lucide-react'
 import CertificateEditor from './CertificateEditor'
 
-const DEFAULT_BODY = `<!DOCTYPE html>
+const DEFAULT_BODY = `
+<!DOCTYPE html>
 
 <html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Certificate</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate</title>
 </head>
+<body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: Arial, sans-serif;">
+<div style="max-width: 600px; margin: 40px auto; background-color: #ffffff; padding: 30px; border-radius: 8px;">
+    <p style="color: #555555; font-size: 16px; line-height: 1.6;">
+        Thank you for participating in our event. We truly appreciate
+        your time and involvement.
+    </p>
 
-<body style="margin:0; padding:0; background-color:#f5f5f5; font-family:Arial, sans-serif;">
-  <div style="max-width:600px; margin:30px auto; background:#ffffff; padding:30px; border-radius:8px;">
+    <p style="color: #555555; font-size: 16px; line-height: 1.6;">
+        Please find your certificate of participation attached to this email.
+    </p>
 
-<h2 style="margin-top:0; color:#222;">
-  Congratulations, {name}! 🎉
-</h2>
+    <p style="color: #555555; font-size: 16px; line-height: 1.6;">
+        We hope you enjoyed the experience and look forward to seeing you
+        again in our future events!
+    </p>
 
-<p style="font-size:16px; color:#444; line-height:1.6;">
-  We're pleased to share your certificate for
-  <strong>{courseName}</strong>.
-</p>
+    <p style="margin-top: 30px; color: #333333;">
+        Best regards,<br>
+        <strong>Event Team</strong>
+    </p>
 
-<p style="font-size:16px; color:#444; line-height:1.6;">
-  You can download your certificate using the button below.
-</p>
-
-<div style="text-align:center; margin:30px 0;">
-  <a href="{certificateUrl}"
-     style="display:inline-block;
-            padding:12px 24px;
-            background:#2563eb;
-            color:#ffffff;
-            text-decoration:none;
-            border-radius:6px;
-            font-size:15px;">
-    View Certificate
-  </a>
-</div>
-
-<p style="font-size:14px; color:#777; line-height:1.5;">
-  Congratulations once again, and we wish you all the best!
-</p>
-
-<p style="font-size:14px; color:#777;">
-  Regards,<br>
-  <strong>{organizationName}</strong>
-</p>
 </div>
 </body>
 </html>
+
 `
 
 const SAMPLE_VALUES = { name: 'John Doe', email: 'john@example.com', course: 'Java Development', date: 'January 15, 2025' }
@@ -134,7 +119,7 @@ export default function TemplateForm({ initial, onSave, onCancel }) {
               <button
                 type="button"
                 onClick={() => setStep(s.id)}
-                className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${step === s.id ? 'bg-white/[0.06] text-teal-300 shadow-[0_0_0_1px_rgba(20,184,166,0.25)_inset]' : 'text-slate-500 hover:text-slate-300'}`}
+                className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${step === s.id ? 'bg-white/[0.06] text-teal-300 shadow-[0_0_0_1px_rgba(129,193,75,0.25)_inset]' : 'text-slate-500 hover:text-slate-300'}`}
               >
                 <s.icon className="w-4 h-4" />
                 {s.label}
@@ -208,7 +193,7 @@ export default function TemplateForm({ initial, onSave, onCancel }) {
             </div>
 
             <div>
-              <label className="label">Detected Variables (auto)</label>
+              <label className="label">Detected Variables</label>
               <div className="w-full truncate rounded-lg border border-white/10 bg-slate-950/70 px-3 py-1.5 font-mono text-sm text-teal-300/80">
                 {variables}
               </div>

@@ -38,7 +38,7 @@ export default function Login() {
       <form onSubmit={submit} className="relative w-full max-w-sm">
         <div className="card p-8">
           <div className="mb-8 flex flex-col items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-emerald-600 shadow-[0_8px_24px_-6px_rgba(20,184,166,0.6)]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 shadow-[0_8px_24px_-6px_rgba(46,147,60,0.6)]">
               <Send className="h-6 w-6 text-teal-950" />
             </div>
             <h1 className="text-lg font-semibold tracking-tight text-slate-50">Certificate Sender</h1>
