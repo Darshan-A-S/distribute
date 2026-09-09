@@ -63,11 +63,16 @@ public class UserAccountService implements UserDetailsService {
 
     public UserDto toDto(UserAccount user) {
         return new UserDto(user.getId(), user.getUsername(), user.getEmail(),
-                user.getSmtpHost(), user.getSmtpPort(), user.getSmtpUsername(),
+                user.getEmailVerified(), user.getSmtpHost(), user.getSmtpPort(), user.getSmtpUsername(),
                 user.getRole(), user.getCreatedAt());
     }
 
     public UserDto updateProfile(UserAccount user, ProfileRequest req) {
+        boolean hasSmtpFields = (req.smtpHost() != null && !req.smtpHost().isBlank())
+                || (req.smtpUsername() != null && !req.smtpUsername().isBlank());
+        if (hasSmtpFields && !Boolean.TRUE.equals(user.getEmailVerified())) {
+            throw new RuntimeException("Verify your email before configuring SMTP settings");
+        }
         if (req.email() != null) user.setEmail(req.email().isBlank() ? null : req.email().trim());
         if (req.smtpHost() != null) user.setSmtpHost(req.smtpHost().isBlank() ? null : req.smtpHost().trim());
         if (req.smtpPort() != null) user.setSmtpPort(req.smtpPort());

@@ -39,6 +39,12 @@ public class UserAccount implements UserDetails {
     private String smtpPassword;
     private Boolean smtpStartTls;
 
+    private Boolean emailVerified = false;
+    private String verificationOtp;
+    private LocalDateTime verificationOtpExpiry;
+    private String resetToken;
+    private LocalDateTime resetTokenExpiry;
+
     private LocalDateTime createdAt;
 
     @PrePersist

@@ -25,6 +25,11 @@ export const api = {
   logout: () => request('/auth/logout', { method: 'POST' }),
   me: () => request('/auth/me'),
   updateSettings: (data) => request('/auth/settings', { method: 'PUT', body: JSON.stringify(data) }),
+  changePassword: (data) => request('/auth/change-password', { method: 'PUT', body: JSON.stringify(data) }),
+  sendVerification: () => request('/auth/send-verification', { method: 'POST' }),
+  verifyEmail: (otp) => request('/auth/verify-email', { method: 'POST', body: JSON.stringify({ otp }) }),
+  forgotPassword: (email) => request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
+  resetPassword: (data) => request('/auth/reset-password', { method: 'POST', body: JSON.stringify(data) }),
 
   // Admin
   getUsers: () => request('/admin/users'),

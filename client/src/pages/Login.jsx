@@ -1,15 +1,18 @@
 import { useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { Send, LogIn, UserPlus, Eye, EyeOff } from 'lucide-react'
+import { Send, LogIn, UserPlus, Eye, EyeOff, KeyRound, MailCheck } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { api } from '../api/api'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
   const { user, loading, login, register } = useAuth()
   const navigate = useNavigate()
-  const [mode, setMode] = useState('login')
+  const [mode, setMode] = useState('login') // 'login' | 'register' | 'forgot'
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [forgotEmail, setForgotEmail] = useState('')
+  const [forgotSent, setForgotSent] = useState(false)
   const [busy, setBusy] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
@@ -19,6 +22,12 @@ export default function Login() {
     e.preventDefault()
     setBusy(true)
     try {
+      if (mode === 'forgot') {
+        await api.forgotPassword(forgotEmail)
+        setForgotSent(true)
+        toast.success('If the email exists, a reset link has been sent')
+        return
+      }
       await (mode === 'login' ? login(username, password) : register(username, password))
       toast.success(mode === 'login' ? 'Welcome back' : 'Account created')
       navigate('/')
@@ -27,6 +36,11 @@ export default function Login() {
     } finally {
       setBusy(false)
     }
+  }
+
+  const switchMode = (m) => {
+    setMode(m)
+    setForgotSent(false)
   }
 
   return (
@@ -44,11 +58,62 @@ export default function Login() {
             </div>
             <h1 className="text-lg font-semibold tracking-tight text-slate-50">Certificate Sender</h1>
             <h2 className="text-sm font-medium text-slate-400">
-              {mode === 'login' ? 'Sign in to your account' : 'Create your account'}
+              {mode === 'login' ? 'Sign in to your account'
+                : mode === 'register' ? 'Create your account'
+                : 'Reset your password'}
             </h2>
           </div>
 
           <div className="space-y-4">
+            {mode === 'forgot' ? (
+              forgotSent ? (
+                <div className="flex flex-col items-center gap-3 py-4 text-center">
+                  <MailCheck className="h-10 w-10 text-teal-400" />
+                  <p className="text-sm text-slate-400">
+                    If an account exists for <span className="text-slate-200">{forgotEmail}</span>,
+                    a reset link has been sent. Check your inbox and follow the link.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => switchMode('login')}
+                    className="mt-2 text-sm font-medium text-teal-400 transition-colors hover:text-teal-300"
+                  >
+                    Back to sign in
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <label className="label" htmlFor="email">Email</label>
+                    <input
+                      id="email"
+                      type="email"
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      required
+                      autoFocus
+                      placeholder="you@example.com"
+                      className="input"
+                    />
+                  </div>
+                  <button type="submit" disabled={busy || !forgotEmail} className="btn-primary w-full">
+                    {busy ? (
+                      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-teal-950/30 border-t-teal-950" />
+                    ) : (
+                      <><KeyRound className="h-4 w-4" /> Send reset link</>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => switchMode('login')}
+                    className="w-full text-center text-sm font-medium text-teal-400 transition-colors hover:text-teal-300"
+                  >
+                    Back to sign in
+                  </button>
+                </>
+              )
+            ) : (
+            <>
             <div>
               <label className="label" htmlFor="username">Username</label>
               <input
@@ -96,6 +161,16 @@ export default function Login() {
               )}
             </button>
 
+            {mode === 'login' && (
+              <button
+                type="button"
+                onClick={() => switchMode('forgot')}
+                className="w-full text-center text-sm font-medium text-slate-500 transition-colors hover:text-teal-300"
+              >
+                Forgot password?
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
@@ -103,6 +178,8 @@ export default function Login() {
             >
               {mode === 'login' ? 'Need an account? Create one' : 'Already have an account? Sign in'}
             </button>
+            </>
+            )}
           </div>
         </div>
       </form>

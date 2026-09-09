@@ -1,6 +1,8 @@
 import { NavLink, Outlet, Navigate } from 'react-router-dom'
 import { LogOut, Newspaper, Users, Send, Settings, ShieldCheck } from 'lucide-react'
+import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import ProfileDialog from './ProfileDialog'
 
 const links = [
   { to: '/', label: 'Templates', icon: Newspaper },
@@ -40,12 +42,14 @@ function avatarUrl() {
 
 export default function Layout() {
   const { user, loading, logout } = useAuth()
+  const [showProfile, setShowProfile] = useState(false)
 
   if (loading) return null
   if (!user) return <Navigate to="/login" replace />
 
   return (
     <div className="h-screen flex">
+      {showProfile && <ProfileDialog onClose={() => setShowProfile(false)} />}
       <aside className="w-56 shrink-0 border-r border-white/[0.06] bg-slate-950/50 p-4 flex flex-col gap-1">
         <div className="flex items-center gap-2.5 px-3 pb-6">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-teal-400 to-teal-600 shadow-[0_4px_16px_-4px_rgba(46,147,60,0.6)]">
@@ -85,12 +89,16 @@ export default function Layout() {
 
         <div className="mt-auto pt-4">
           <div className="flex items-center gap-3 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2.5">
-            <img
-              src={avatarUrl()}
-              alt="Profile"
-              className="h-9 w-9 shrink-0 rounded-lg bg-slate-800"
-            />
-            <p className="min-w-0 flex-1 truncate text-sm font-medium text-slate-200">{user.username}</p>
+            <button onClick={() => setShowProfile(true)} title="Profile" aria-label="Profile" className="flex min-w-0 flex-1 items-center gap-1.5">
+              <img
+                src={avatarUrl()}
+                alt="Profile"
+                className="h-9 w-9 shrink-0 rounded-lg bg-slate-800"
+              />
+              <p className="min-w-0 flex-1 truncate text-sm font-medium text-slate-200 hover:text-slate-50">
+                {user.username}
+              </p>
+            </button>
             <NavLink
               to="/settings"
               title="Settings"

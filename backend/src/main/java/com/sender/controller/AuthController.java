@@ -1,9 +1,8 @@
 package com.sender.controller;
 
-import com.sender.dto.AuthRequest;
-import com.sender.dto.ProfileRequest;
-import com.sender.dto.UserDto;
+import com.sender.dto.*;
 import com.sender.model.UserAccount;
+import com.sender.service.PasswordService;
 import com.sender.service.UserAccountService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,6 +27,7 @@ public class AuthController {
 
     private final AuthenticationManager authManager;
     private final UserAccountService userService;
+    private final PasswordService passwordService;
     private final HttpSessionSecurityContextRepository securityContextRepository;
 
     @PostMapping("/register")
@@ -79,6 +79,65 @@ public class AuthController {
         }
         try {
             return ResponseEntity.ok(userService.updateProfile(user, req));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest req, Authentication auth) {
+        if (auth == null || !(auth.getPrincipal() instanceof UserAccount user)) {
+            return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
+        }
+        try {
+            passwordService.changePassword(user, req.currentPassword(), req.newPassword());
+            return ResponseEntity.ok(Map.of("message", "Password changed"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest req) {
+        try {
+            passwordService.forgotPassword(req.email());
+            return ResponseEntity.ok(Map.of("message", "If the email exists, a reset link has been sent"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest req) {
+        try {
+            passwordService.resetPassword(req.token(), req.newPassword());
+            return ResponseEntity.ok(Map.of("message", "Password reset successfully"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/send-verification")
+    public ResponseEntity<?> sendVerification(Authentication auth) {
+        if (auth == null || !(auth.getPrincipal() instanceof UserAccount user)) {
+            return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
+        }
+        try {
+            passwordService.sendVerificationOtp(user);
+            return ResponseEntity.ok(Map.of("message", "Verification OTP sent"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/verify-email")
+    public ResponseEntity<?> verifyEmail(@RequestBody VerifyOtpRequest req, Authentication auth) {
+        if (auth == null || !(auth.getPrincipal() instanceof UserAccount user)) {
+            return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
+        }
+        try {
+            passwordService.verifyEmail(user, req.otp());
+            return ResponseEntity.ok(Map.of("message", "Email verified"));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

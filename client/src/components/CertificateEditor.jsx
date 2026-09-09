@@ -34,6 +34,8 @@ async function rasterizePdf(dataUrl) {
   return { preview: canvas.toDataURL('image/png'), width: design.width, height: design.height }
 }
 
+export { rasterizePdf }
+
 export default function CertificateEditor({ value, onChange, variables = [] }) {
   const [selectedId, setSelectedId] = useState(null)
   const [dragId, setDragId] = useState(null)

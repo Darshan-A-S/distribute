@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Trash2, SquarePen, Plus, Library, Copy, Globe } from 'lucide-react'
+import { Trash2, SquarePen, Plus, Library, Copy, Globe, X } from 'lucide-react'
 import { api } from '../api/api'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
@@ -8,7 +8,7 @@ import ConfirmDialog from '../components/ConfirmDialog'
 
 const SAMPLE_VALUES = { name: 'John Doe', email: 'john@example.com', course: 'Java Development', date: 'January 15, 2025' }
 
-function TemplatePreview({ body }) {
+function TemplatePreview({ body, fill = false }) {
   const ref = useRef(null)
 
   const onLoad = () => {
@@ -33,35 +33,61 @@ function TemplatePreview({ body }) {
       sandbox=""
       onLoad={onLoad}
       srcDoc={body.replace(/\{(\w+)\}/g, (_, v) => SAMPLE_VALUES[v] || 'Sample Value')}
-      className="mt-3 w-full h-56 bg-white rounded-lg border border-white/10 shrink-0"
+      className={`bg-white rounded-lg border border-white/10 ${fill ? 'w-full h-full' : 'mt-3 w-full h-56 shrink-0'}`}
     />
   )
 }
 
-function LibraryCard({ t, isAdmin, onCustomize, onEdit, onDelete, forking }) {
+function TemplateDialog({ t, actionLabel, onAction, onClose }) {
   return (
-    <div className="card group flex flex-col p-4 transition-colors duration-150 hover:border-white/15">
-      <div className="flex items-center justify-between gap-2">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-slate-950/90" onClick={onClose} />
+      <div className="relative flex h-[40vh] w-full max-w-4xl overflow-hidden rounded-xl border border-teal-700/30 bg-slate-900 shadow-[0_0_45px_-15px_rgba(46,147,60,0.4)]">
+        <div className="flex min-w-0 flex-1 flex-col gap-3 p-5">
+          <TemplatePreview body={t.body} fill />
+        </div>
+
+        <div className="flex w-72 shrink-0 flex-col gap-4 border-l border-white/[0.06] p-6">
+          <button onClick={onClose} aria-label="Close" className="icon-btn self-end">
+            <X className="h-4 w-4" />
+          </button>
+          <div>
+            <h3 className="break-words text-xl font-semibold tracking-tight text-slate-50">{t.name}</h3>
+            <p className="mt-1.5 text-sm text-slate-400">{t.subject}</p>
+          </div>
+          <div className="mt-auto flex flex-col gap-2">
+            <button onClick={onAction} className="btn-primary w-full justify-center">
+              <Copy className="h-4 w-4" />
+              {actionLabel}
+            </button>
+            <button onClick={onClose} className="btn-secondary w-full justify-center">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function TemplateCard({ t, isAdmin, onOpen, onEdit, onDelete, onPublish }) {
+  return (
+    <div onClick={() => onOpen(t)} className="card group cursor-pointer p-4 transition-colors duration-150 hover:border-teal-400/30">
+      <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <h3 className="truncate font-semibold text-lg text-slate-100">{t.name}</h3>
           <p className="truncate text-xs text-slate-500">{t.subject}</p>
         </div>
-        {isAdmin && (
-          <div className="flex gap-1">
-            <button onClick={() => onEdit(t)} title="Edit" aria-label="Edit" className="icon-btn"><SquarePen className="h-4 w-4" /></button>
-            <button onClick={() => onDelete(t)} title="Delete" aria-label="Delete" className="icon-btn text-red-400/80 hover:bg-red-500/10 hover:text-red-300"><Trash2 className="h-4 w-4" /></button>
-          </div>
-        )}
+        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+          {isAdmin && onPublish && (
+            <button onClick={() => onPublish(t)} title="Publish to library" aria-label="Publish to library" className="icon-btn text-teal-400/80 hover:bg-teal-400/10 hover:text-teal-300"><Globe className="h-4 w-4" /></button>
+          )}
+          {onEdit && <button onClick={() => onEdit(t)} title="Edit" aria-label="Edit" className="icon-btn"><SquarePen className="h-4 w-4" /></button>}
+          {onDelete && <button onClick={() => onDelete(t)} title="Delete" aria-label="Delete" className="icon-btn text-red-400/80 hover:bg-red-500/10 hover:text-red-300"><Trash2 className="h-4 w-4" /></button>}
+        </div>
       </div>
       <TemplatePreview body={t.body} />
-      <button
-        onClick={() => (isAdmin ? onEdit(t) : onCustomize(t))}
-        disabled={forking}
-        className="btn-primary mt-3 w-full justify-center disabled:opacity-60"
-      >
-        <Copy className="h-4 w-4" />
-        {isAdmin ? 'Edit & Save' : 'Customize this template'}
-      </button>
+      <span className="mt-3 inline-block text-sm font-medium text-teal-400 group-hover:text-teal-300">View template</span>
     </div>
   )
 }
@@ -76,6 +102,7 @@ export default function Templates() {
   const [isFork, setIsFork] = useState(false)
   const [forkFrom, setForkFrom] = useState(null)
   const [forking, setForking] = useState(false)
+  const [viewing, setViewing] = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(null)
   const [confirmPublish, setConfirmPublish] = useState(null)
   const [deleting, setDeleting] = useState(false)
@@ -174,6 +201,16 @@ export default function Templates() {
     }
   }
 
+  const openDialog = (t) => setViewing(t)
+
+  const handleViewAction = () => {
+    if (!viewing) return
+    const t = viewing
+    setViewing(null)
+    if (t.builtIn && !isAdmin) handleCustomize(t)
+    else handleEdit(t)
+  }
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-6">
@@ -230,14 +267,13 @@ export default function Templates() {
             ) : (
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {library.map((t) => (
-                  <LibraryCard
+                  <TemplateCard
                     key={t.id}
                     t={t}
                     isAdmin={isAdmin}
-                    onCustomize={handleCustomize}
-                    onEdit={handleEdit}
-                    onDelete={setConfirmDelete}
-                    forking={forking}
+                    onOpen={openDialog}
+                    onEdit={isAdmin ? handleEdit : null}
+                    onDelete={isAdmin ? setConfirmDelete : null}
                   />
                 ))}
               </div>
@@ -261,26 +297,28 @@ export default function Templates() {
 
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {templates.map((t) => (
-                <div key={t.id} className="card group p-4 transition-colors duration-150 hover:border-white/15">
-                  <div className="flex items-center justify-between">
-                    <div className="min-w-0">
-                      <h3 className="truncate font-semibold text-lg text-slate-100">{t.name}</h3>
-                      <p className="truncate text-sm text-slate-500">Subject: {t.subject}</p>
-                    </div>
-                    <div className="flex gap-1">
-                      {isAdmin && (
-                        <button onClick={() => setConfirmPublish(t)} title="Publish to library" aria-label="Publish to library" className="icon-btn text-teal-400/80 hover:bg-teal-400/10 hover:text-teal-300"><Globe className="h-4 w-4" /></button>
-                      )}
-                      <button onClick={() => handleEdit(t)} title="Edit" aria-label="Edit" className="icon-btn"><SquarePen className="h-4 w-4" /></button>
-                      <button onClick={() => setConfirmDelete(t)} title="Delete" aria-label="Delete" className="icon-btn text-red-400/80 hover:bg-red-500/10 hover:text-red-300"><Trash2 className="h-4 w-4" /></button>
-                    </div>
-                  </div>
-                  <TemplatePreview body={t.body} />
-                </div>
+                <TemplateCard
+                  key={t.id}
+                  t={t}
+                  isAdmin={isAdmin}
+                  onOpen={openDialog}
+                  onEdit={handleEdit}
+                  onDelete={setConfirmDelete}
+                  onPublish={isAdmin ? setConfirmPublish : null}
+                />
               ))}
             </div>
           </section>
         </>
+      )}
+
+      {viewing && (
+        <TemplateDialog
+          t={viewing}
+          actionLabel={(viewing.builtIn && !isAdmin) ? 'Customize this template' : 'Edit template'}
+          onAction={handleViewAction}
+          onClose={() => setViewing(null)}
+        />
       )}
 
       {confirmDelete && (

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Trash2, ShieldCheck, Shield, ShieldOff } from 'lucide-react'
+import { Trash2, ShieldCheck, Shield, ShieldOff, CheckCircle2, AlertTriangle } from 'lucide-react'
 import { api } from '../api/api'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
@@ -74,7 +74,14 @@ export default function AdminUsers() {
                   {u.username}
                   {u.id === user?.id && <span className="ml-2 text-xs text-slate-500">(you)</span>}
                 </td>
-                <td className="px-4 py-3 text-slate-400">{u.email || '—'}</td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-1.5">
+                    <span className={u.emailVerified ? 'text-teal-300' : 'text-slate-400'}>{u.email || '—'}</span>
+                    {u.emailVerified
+                      ? <CheckCircle2 className="h-3.5 w-3.5 text-teal-400" />
+                      : <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />}
+                  </div>
+                </td>
                 <td className="px-4 py-3">
                   {u.role === 'ADMIN' ? (
                     <span className="rounded-full bg-amber-400/10 px-2 py-0.5 text-xs font-medium text-amber-300">Admin</span>
