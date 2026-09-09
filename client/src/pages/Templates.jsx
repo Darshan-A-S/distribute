@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Trash2, SquarePen, Plus, Library, Copy, Globe, X } from 'lucide-react'
+import { Trash2, SquarePen, Plus, Library, Copy, Globe, X, ArrowLeft } from 'lucide-react'
 import { api } from '../api/api'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
@@ -106,6 +106,7 @@ export default function Templates() {
   const [confirmDelete, setConfirmDelete] = useState(null)
   const [confirmPublish, setConfirmPublish] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [browsing, setBrowsing] = useState(false)
 
   const load = () => {
     api.getTemplates().then(setTemplates).catch(e => toast.error(e.message))
@@ -213,16 +214,21 @@ export default function Templates() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="page-title">Email Templates</h2>
-        </div>
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="page-title">Email Templates</h2>
         {!showForm && (
           <div className="flex gap-3">
-            <button onClick={() => document.getElementById('library-section')?.scrollIntoView({ behavior: 'smooth' })} className="btn-secondary">
-              <Library className="h-4 w-4" />
-              Browse Templates
-            </button>
+            {browsing ? (
+              <button onClick={() => setBrowsing(false)} className="btn-secondary">
+                <ArrowLeft className="h-4 w-4" />
+                My Templates
+              </button>
+            ) : (
+              <button onClick={() => setBrowsing(true)} className="btn-secondary">
+                <Library className="h-4 w-4" />
+                Browse Templates
+              </button>
+            )}
             <button
               onClick={() => { setEditing(null); setShowForm(true) }}
               className="btn-primary"
@@ -247,69 +253,65 @@ export default function Templates() {
             setForkFrom(null)
           }}
         />
-      ) : (
-        <>
-          <section id="library-section" className="mb-8">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
-                Template Library
-              </h3>
+      ) : browsing ? (
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400">Template Library</h3>
+          </div>
+
+          {library.length === 0 ? (
+            <div className="card flex flex-col items-center gap-3 p-10 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-400/10">
+                <Library className="h-6 w-6 text-teal-400" />
+              </div>
+              <p className="font-medium text-slate-200">No templates in the library yet</p>
+              {isAdmin && <p className="text-sm text-slate-500">Create a template and check "Publish to Template Library" to add one.</p>}
             </div>
-
-            {library.length === 0 ? (
-              <div className="card flex flex-col items-center gap-3 p-10 text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-400/10">
-                  <Library className="h-6 w-6 text-teal-400" />
-                </div>
-                <p className="font-medium text-slate-200">No templates in the library yet</p>
-                {isAdmin && <p className="text-sm text-slate-500">Create a template and check "Publish to Template Library" to add one.</p>}
-              </div>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {library.map((t) => (
-                  <TemplateCard
-                    key={t.id}
-                    t={t}
-                    isAdmin={isAdmin}
-                    onOpen={openDialog}
-                    onEdit={isAdmin ? handleEdit : null}
-                    onDelete={isAdmin ? setConfirmDelete : null}
-                  />
-                ))}
-              </div>
-            )}
-          </section>
-
-          <section>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400">Your Templates</h3>
-            </div>
-
-            {templates.length === 0 && (
-              <div className="card flex flex-col items-center gap-3 p-10 text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-400/10">
-                  <SquarePen className="h-6 w-6 text-teal-400" />
-                </div>
-                <p className="font-medium text-slate-200">No personal templates yet</p>
-                <p className="text-sm text-slate-500">Create your own or customize one from the library.</p>
-              </div>
-            )}
-
+          ) : (
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {templates.map((t) => (
+              {library.map((t) => (
                 <TemplateCard
                   key={t.id}
                   t={t}
                   isAdmin={isAdmin}
                   onOpen={openDialog}
-                  onEdit={handleEdit}
-                  onDelete={setConfirmDelete}
-                  onPublish={isAdmin ? setConfirmPublish : null}
+                  onEdit={isAdmin ? handleEdit : null}
+                  onDelete={isAdmin ? setConfirmDelete : null}
                 />
               ))}
             </div>
-          </section>
-        </>
+          )}
+        </section>
+      ) : (
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400">Your Templates</h3>
+          </div>
+
+          {templates.length === 0 && (
+            <div className="card flex flex-col items-center gap-3 p-10 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-400/10">
+                <SquarePen className="h-6 w-6 text-teal-400" />
+              </div>
+              <p className="font-medium text-slate-200">No personal templates yet</p>
+              <p className="text-sm text-slate-500">Create your own or customize one from the library.</p>
+            </div>
+          )}
+
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {templates.map((t) => (
+              <TemplateCard
+                key={t.id}
+                t={t}
+                isAdmin={isAdmin}
+                onOpen={openDialog}
+                onEdit={handleEdit}
+                onDelete={setConfirmDelete}
+                onPublish={isAdmin ? setConfirmPublish : null}
+              />
+            ))}
+          </div>
+        </section>
       )}
 
       {viewing && (

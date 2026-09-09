@@ -3,30 +3,27 @@ import { X, Mail, FileText, Layers, Calendar, ShieldCheck, Send } from 'lucide-r
 import { api } from '../api/api'
 import { useAuth } from '../context/AuthContext'
 
-function avatarUrl() {
-  let seed = localStorage.getItem('avatarSeed')
-  if (!seed) {
-    seed = Math.random().toString(36).slice(2, 10)
-    localStorage.setItem('avatarSeed', seed)
-  }
-  return `https://api.dicebear.com/9.x/thumbs/svg?seed=${seed}`
+function avatarUrl(seed) {
+  return `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(seed || '')}`
 }
 
-export default function ProfileDialog({ onClose }) {
+export default function ProfileDialog({ userOverride, onClose }) {
   const { user } = useAuth()
+  const p = userOverride || user
   const [templateCount, setTemplateCount] = useState('—')
   const [batchCount, setBatchCount] = useState('—')
   const [sentCount, setSentCount] = useState('—')
 
   useEffect(() => {
+    if (userOverride) return
     api.getTemplates().then((t) => setTemplateCount(t.length)).catch(() => {})
     api.getBatches().then((b) => setBatchCount(b.length)).catch(() => {})
     api.getRecentSends()
       .then((j) => setSentCount(j.reduce((n, x) => n + (x.success || 0), 0)))
       .catch(() => {})
-  }, [])
+  }, [userOverride])
 
-  const stats = [
+  const stats = userOverride ? [] : [
     { label: 'Templates', value: templateCount, icon: FileText },
     { label: 'Batches', value: batchCount, icon: Layers },
     { label: 'Emails sent', value: sentCount, icon: Send },
@@ -38,9 +35,9 @@ export default function ProfileDialog({ onClose }) {
       <div className="relative w-full max-w-md rounded-xl border border-teal-700/30 bg-slate-900 p-6 shadow-[0_0_45px_-15px_rgba(46,147,60,0.4)]">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
-            <img src={avatarUrl()} alt="Profile" className="h-14 w-14 rounded-xl bg-slate-800" />
+            <img src={avatarUrl(p?.username)} alt="Profile" className="h-14 w-14 rounded-xl bg-slate-800" />
             <div>
-              <p className="text-lg font-semibold tracking-tight text-slate-50">{user?.username}</p>
+              <p className="text-lg font-semibold tracking-tight text-slate-50">{p?.username}</p>
             </div>
           </div>
           <button onClick={onClose} aria-label="Close" className="icon-btn">
@@ -54,8 +51,8 @@ export default function ProfileDialog({ onClose }) {
               <Mail className="h-3.5 w-3.5" /> Email
             </p>
             <p className="mt-0.5 flex items-center gap-1.5 text-sm text-slate-200">
-              {user?.email || '—'}
-              {user?.emailVerified && <ShieldCheck className="h-3.5 w-3.5 text-teal-400" />}
+              {p?.email || '—'}
+              {p?.emailVerified && <ShieldCheck className="h-3.5 w-3.5 text-teal-400" />}
             </p>
           </div>
 
@@ -64,19 +61,21 @@ export default function ProfileDialog({ onClose }) {
               <Calendar className="h-3.5 w-3.5" /> Member since
             </p>
             <p className="mt-0.5 text-sm text-slate-200">
-              {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}
+              {p?.createdAt ? new Date(p.createdAt).toLocaleDateString() : '—'}
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 pt-2">
-            {stats.map((s) => (
-              <div key={s.label} className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3 text-center">
-                <s.icon className="mx-auto mb-1.5 h-4 w-4 text-teal-400" />
-                <p className="text-lg font-semibold text-slate-50">{s.value}</p>
-                <p className="text-[11px] text-slate-500">{s.label}</p>
-              </div>
-            ))}
-          </div>
+          {stats.length > 0 && (
+            <div className="grid grid-cols-3 gap-3 pt-2">
+              {stats.map((s) => (
+                <div key={s.label} className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3 text-center">
+                  <s.icon className="mx-auto mb-1.5 h-4 w-4 text-teal-400" />
+                  <p className="text-lg font-semibold text-slate-50">{s.value}</p>
+                  <p className="text-[11px] text-slate-500">{s.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
