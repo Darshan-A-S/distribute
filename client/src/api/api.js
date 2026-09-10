@@ -28,6 +28,7 @@ export const api = {
   changePassword: (data) => request('/auth/change-password', { method: 'PUT', body: JSON.stringify(data) }),
   sendVerification: () => request('/auth/send-verification', { method: 'POST' }),
   verifyEmail: (otp) => request('/auth/verify-email', { method: 'POST', body: JSON.stringify({ otp }) }),
+  deleteAccount: () => request('/auth/account', { method: 'DELETE' }),
   forgotPassword: (email) => request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
   resetPassword: (data) => request('/auth/reset-password', { method: 'POST', body: JSON.stringify(data) }),
 
@@ -71,6 +72,6 @@ export const api = {
 
   // Send
   send: (data) => request('/send', { method: 'POST', body: JSON.stringify(data) }),
-  getSendStatus: (batchName) => request(`/send/status/${batchName}`),
+  getActiveSends: () => request('/send/jobs/active'),
   getRecentSends: () => request('/send/recent'),
 }

@@ -63,7 +63,7 @@ sender/
 - **Theme:** Dark slate-950 background, teal/green accent palette (custom in tailwind.config.js), Inter font.
 - **State:** React Context only (no Redux, no Zustand). `AuthContext` for auth state.
 - **API calls:** All through `api/api.js` fetch wrapper. Always `credentials: 'include'`.
-- **Routes:** `/login`, then guarded `/` (Templates), `/recipients`, `/send`, `/settings`, `/admin/users`.
+- **Routes:** `/` public landing, `/login`, then guarded `/app` (Templates), `/app/recipients`, `/app/send`, `/app/settings`, `/app/admin/users`.
 
 ## API Endpoints
 

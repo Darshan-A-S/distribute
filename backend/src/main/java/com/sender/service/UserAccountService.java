@@ -48,6 +48,10 @@ public class UserAccountService implements UserDetailsService {
         repo.deleteById(id);
     }
 
+    public void deleteAccount(UserAccount user) {
+        repo.delete(user);
+    }
+
     public void setRole(Long id, String role, Long selfId) {
         if (!"USER".equals(role) && !"ADMIN".equals(role)) {
             throw new RuntimeException("Role must be USER or ADMIN");

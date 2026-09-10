@@ -13,18 +13,33 @@ export default function Send() {
   const [batchName, setBatchName] = useState('')
   const [batches, setBatches] = useState([])
   const [sending, setSending] = useState(false)
-  const [status, setStatus] = useState(null)
+  const [activeJobs, setActiveJobs] = useState([])
   const [recent, setRecent] = useState([])
 
   const hasSmtp = user?.smtpHost && user?.smtpUsername
 
   const loadRecent = () => api.getRecentSends().then(setRecent).catch(() => {})
   const loadBatches = () => api.getBatches().then(setBatches).catch(() => {})
+
+  const refreshActive = async () => {
+    try {
+      const jobs = await api.getActiveSends()
+      setActiveJobs(jobs)
+      if (jobs.some((j) => j.status === 'QUEUED' || j.status === 'RUNNING')) {
+        setTimeout(refreshActive, 2000)
+      } else {
+        loadBatches()
+        loadRecent()
+      }
+    } catch (e) {}
+  }
+
   useEffect(() => {
     if (!hasSmtp) return
     api.getTemplates().then(setTemplates).catch(e => toast.error(e.message))
     loadBatches()
     loadRecent()
+    refreshActive()
   }, [hasSmtp])
 
   const handleSend = async () => {
@@ -36,25 +51,13 @@ export default function Send() {
         batchName,
       })
       toast.success(result.message)
-      pollStatus()
+      setBatchName('')
+      refreshActive()
     } catch (e) {
       toast.error(e.message)
     } finally {
       setSending(false)
     }
-  }
-
-  const pollStatus = async () => {
-    try {
-      const s = await api.getSendStatus(batchName)
-      setStatus(s)
-      if (s.pending > 0) {
-        setTimeout(pollStatus, 2000)
-      } else {
-        loadBatches()
-        loadRecent()
-      }
-    } catch (e) {}
   }
 
   return (
@@ -73,7 +76,7 @@ export default function Send() {
           <p className="text-sm text-slate-400 mb-5 max-w-sm mx-auto">
             You need to set up your mail server before you can send emails.
           </p>
-          <Link to="/settings" className="btn-primary inline-flex items-center gap-2">
+          <Link to="/app/settings" className="btn-primary inline-flex items-center gap-2">
             <Settings className="h-4 w-4" />
             Set up SMTP
           </Link>
@@ -102,7 +105,7 @@ export default function Send() {
             options={batches.map((b) => ({ value: b.batch, label: `${b.batch} (${b.pending} unsent)`, disabled: b.pending === 0 }))}
           />
           {batches.length === 0 && (
-            <p className="text-xs text-slate-500 mt-1.5">No batches uploaded yet — import recipients first.</p>
+            <p className="text-xs text-slate-500 mt-1.5">No batches uploaded yet; import recipients first.</p>
           )}
         </div>
 
@@ -119,22 +122,53 @@ export default function Send() {
         </button>
         </div>
 
-      {status && (
+      {activeJobs.length > 0 && (
         <div className="card mt-6 p-5">
-          <h3 className="mb-3 text-sm font-semibold text-slate-200">Sending Progress</h3>
-          <div className="flex gap-5 text-sm">
-            <span className="font-medium text-teal-300">Sent: {status.sent}</span>
-            <span className="font-medium text-amber-400">Pending: {status.pending}</span>
-            {status.failed > 0 && <span className="font-medium text-red-400">Failed: {status.failed}</span>}
+          <h3 className="mb-4 text-sm font-semibold text-slate-200">
+            Active Sends ({activeJobs.length})
+          </h3>
+          <div className="space-y-4">
+            {activeJobs.map((j) => (
+              <div key={j.id} className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-slate-100">{j.templateName || 'Template'}</p>
+                    <p className="truncate text-sm text-slate-500">Batch: {j.batchName}</p>
+                  </div>
+                  {j.status === 'QUEUED' ? (
+                    <span className="shrink-0 rounded-full bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 text-xs font-medium text-amber-300">
+                      Queued
+                    </span>
+                  ) : (
+                    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-teal-500/10 border border-teal-500/20 px-2.5 py-0.5 text-xs font-medium text-teal-300">
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-teal-400" />
+                      Sending
+                    </span>
+                  )}
+                </div>
+
+                {j.status === 'RUNNING' ? (
+                  <>
+                    <div className="mt-3 flex flex-wrap gap-5 text-sm">
+                      <span className="font-medium text-teal-300">Sent: {j.success}</span>
+                      <span>Pending: {Math.max(0, j.total - j.success - j.failed)}</span>
+                      {j.failed > 0 && <span className="font-medium text-red-400">Failed: {j.failed}</span>}
+                    </div>
+                    <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/[0.06]">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-teal-400 to-teal-600 transition-all duration-300"
+                        style={{ width: `${j.total ? Math.min(100, (j.success / j.total) * 100) : 0}%` }}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <p className="mt-3 text-xs text-amber-400/80">
+                    Waiting; one batch sends at a time per account. Starts automatically when the previous one finishes.
+                  </p>
+                )}
+              </div>
+            ))}
           </div>
-          {status.pending > 0 && (
-            <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-white/[0.06]">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-teal-400 to-teal-600 transition-all duration-300"
-                style={{ width: `${(status.sent / (status.sent + status.pending)) * 100}%` }}
-              />
-            </div>
-          )}
         </div>
       )}
 

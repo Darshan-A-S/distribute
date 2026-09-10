@@ -26,7 +26,6 @@ public class SendController {
 
     private final EmailService emailService;
     private final TemplateService templateService;
-    private final ExcelService excelService;
     private final RecipientRepository recipientRepo;
     private final SendJobRepository sendJobRepo;
 
@@ -59,7 +58,7 @@ public class SendController {
                 .batchName(req.getBatchName())
                 .templateName(template.getName())
                 .total(recipients.size())
-                .status("RUNNING")
+                .status("QUEUED")
                 .startedAt(LocalDateTime.now())
                 .build());
 
@@ -71,10 +70,10 @@ public class SendController {
         ));
     }
 
-    @GetMapping("/status/{batchName}")
-    public ResponseEntity<Map<String, Long>> status(@PathVariable String batchName, Authentication auth) {
-        long[] stats = excelService.getBatchStats(batchName, ownerId(auth));
-        return ResponseEntity.ok(Map.of("sent", stats[0], "pending", stats[1]));
+    @GetMapping("/jobs/active")
+    public List<SendJob> active(Authentication auth) {
+        return sendJobRepo.findByOwnerIdAndStatusInOrderByStartedAtDesc(
+                ownerId(auth), List.of("QUEUED", "RUNNING"));
     }
 
     @GetMapping("/recent")

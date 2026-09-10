@@ -3,7 +3,7 @@ import { X, Mail, FileText, Layers, Calendar, ShieldCheck, Send } from 'lucide-r
 import { api } from '../api/api'
 import { useAuth } from '../context/AuthContext'
 
-function avatarUrl(seed) {
+export function avatarUrl(seed) {
   return `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(seed || '')}`
 }
 

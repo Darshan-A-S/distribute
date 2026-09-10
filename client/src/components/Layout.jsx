@@ -3,11 +3,12 @@ import { LogOut, Newspaper, Users, Send, Settings, ShieldCheck } from 'lucide-re
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import ProfileDialog from './ProfileDialog'
+import logo from '../assets/logo-transparent.svg'
 
 const links = [
-  { to: '/', label: 'Templates', icon: Newspaper },
-  { to: '/recipients', label: 'Recipients', icon: Users },
-  { to: '/send', label: 'Send', icon: Send },
+  { to: '/app', label: 'Templates', icon: Newspaper, end: true },
+  { to: '/app/recipients', label: 'Recipients', icon: Users },
+  { to: '/app/send', label: 'Send', icon: Send },
 ]
 
 function AdminLink({ to, label, icon: Icon }) {
@@ -51,14 +52,9 @@ export default function Layout() {
     <div className="h-screen flex">
       {showProfile && <ProfileDialog onClose={() => setShowProfile(false)} />}
       <aside className="w-56 shrink-0 border-r border-white/[0.06] bg-slate-950/50 p-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2.5 px-3 pb-6">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-teal-400 to-teal-600 shadow-[0_4px_16px_-4px_rgba(46,147,60,0.6)]">
-            <Send className="h-4 w-4 text-teal-950" />
-          </div>
-          <div className="leading-tight">
-            <p className="text-sm font-semibold tracking-tight text-slate-50">Certificate</p>
-            <p className="text-[11px] font-medium text-teal-400">Sender</p>
-          </div>
+        <div className="flex items-center gap-1 px-3 pb-6">
+          <img src={logo} alt="distribute" className="h-8 w-8" />
+          <p className="text-sm font-semibold tracking-tight text-slate-50">distribute</p>
         </div>
 
         <nav className="flex flex-col gap-0.5">
@@ -66,7 +62,7 @@ export default function Layout() {
             <NavLink
               key={l.to}
               to={l.to}
-              end={l.to === '/'}
+              end={l.end}
               className={({ isActive }) =>
                 `group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-150 ${
                   isActive
@@ -85,7 +81,7 @@ export default function Layout() {
           ))}
         </nav>
 
-        {user.role === 'ADMIN' && <AdminLink to="/admin/users" label="Users" icon={ShieldCheck} />}
+        {user.role === 'ADMIN' && <AdminLink to="/app/admin/users" label="Users" icon={ShieldCheck} />}
 
         <div className="mt-auto pt-4">
           <div className="flex items-center gap-3 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2.5">
@@ -100,7 +96,7 @@ export default function Layout() {
               </p>
             </button>
             <NavLink
-              to="/settings"
+              to="/app/settings"
               title="Settings"
               aria-label="Settings"
               className={({ isActive }) => (isActive ? 'icon-btn text-teal-400' : 'icon-btn')}

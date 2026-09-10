@@ -84,6 +84,15 @@ public class AuthController {
         }
     }
 
+    @DeleteMapping("/account")
+    public ResponseEntity<?> deleteAccount(Authentication auth) {
+        if (auth == null || !(auth.getPrincipal() instanceof UserAccount user)) {
+            return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
+        }
+        userService.deleteAccount(user);
+        return ResponseEntity.noContent().build();
+    }
+
     @PutMapping("/change-password")
     public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest req, Authentication auth) {
         if (auth == null || !(auth.getPrincipal() instanceof UserAccount user)) {

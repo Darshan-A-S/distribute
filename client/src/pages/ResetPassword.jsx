@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Navigate, Link, useSearchParams } from 'react-router-dom'
-import { Send, KeyRound } from 'lucide-react'
+import { KeyRound } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { api } from '../api/api'
 import { useAuth } from '../context/AuthContext'
+import logo from '../assets/logo-transparent.svg'
 
 export default function ResetPassword() {
   const { user, loading } = useAuth()
@@ -14,7 +15,7 @@ export default function ResetPassword() {
   const [busy, setBusy] = useState(false)
   const [done, setDone] = useState(false)
 
-  if (!loading && user) return <Navigate to="/" replace />
+  if (!loading && user) return <Navigate to="/app" replace />
 
   const submit = async (e) => {
     e.preventDefault()
@@ -42,10 +43,8 @@ export default function ResetPassword() {
       <form onSubmit={submit} className="relative w-full max-w-sm">
         <div className="card p-8">
           <div className="mb-8 flex flex-col items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 shadow-[0_8px_24px_-6px_rgba(46,147,60,0.6)]">
-              <Send className="h-6 w-6 text-teal-950" />
-            </div>
-            <h1 className="text-lg font-semibold tracking-tight text-slate-50">Certificate Sender</h1>
+            <img src={logo} alt="distribute" className="h-12 w-12" />
+            <h1 className="text-lg font-semibold tracking-tight text-slate-50">distribute</h1>
             <h2 className="text-sm font-medium text-slate-400">
               {done ? 'Password reset' : 'Set a new password'}
             </h2>

@@ -46,6 +46,7 @@ public class SecurityConfig {
                 .logout(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/health").permitAll()
                         .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/logout", "/api/auth/me", "/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/api/templates/library/**").hasRole("ADMIN")

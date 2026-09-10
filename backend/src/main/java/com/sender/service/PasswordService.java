@@ -10,7 +10,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import jakarta.mail.internet.MimeMessage;
+import org.springframework.core.io.ClassPathResource;
+
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -41,9 +45,7 @@ public class PasswordService {
         user.setResetTokenExpiry(LocalDateTime.now().plusHours(1));
         repo.save(user);
         sendEmail(user.getEmail(), "Password Reset Request",
-                "<p>Click the link to reset your password:</p>"
-                + "<p><a href=\"http://localhost:5173/reset-password?token=" + token + "\">Reset Password</a></p>"
-                + "<p>This link expires in 1 hour.</p>");
+                mail("Password Reset", "templates/mail/reset.html", Map.of("URL", resetUrl(token))));
         log.info("Password reset email sent to {}", email);
     }
 
@@ -73,9 +75,7 @@ public class PasswordService {
         user.setVerificationOtp(otp);
         user.setVerificationOtpExpiry(LocalDateTime.now().plusMinutes(15));
         repo.save(user);
-        sendEmail(user.getEmail(), "Verify Your Email",
-                "<p>Your verification code is: <b>" + otp + "</b></p>"
-                + "<p>This code expires in 15 minutes.</p>");
+        sendEmail(user.getEmail(), "Verify Your Email", mail("Verify Your Email", "templates/mail/otp.html", Map.of("OTP", otp)));
         log.info("Verification OTP sent to {}", user.getEmail());
     }
 
@@ -96,6 +96,29 @@ public class PasswordService {
         user.setVerificationOtp(null);
         user.setVerificationOtpExpiry(null);
         repo.save(user);
+    }
+
+    private String resetUrl(String token) {
+        return "http://localhost:5173/reset-password?token=" + token;
+    }
+
+    private String mail(String title, String contentPath, Map<String, String> vars) {
+        String html = readResource("templates/mail/layout.html")
+                .replace("{{CONTENT}}", readResource(contentPath))
+                .replace("{{TITLE}}", title);
+        for (Map.Entry<String, String> e : vars.entrySet()) {
+            html = html.replace("{{" + e.getKey() + "}}", e.getValue());
+        }
+        return html;
+    }
+
+    private String readResource(String path) {
+        try {
+            return new String(new ClassPathResource(path).getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            log.error("Failed to read mail template {}", path, e);
+            throw new RuntimeException("Failed to load mail template");
+        }
     }
 
     private void sendEmail(String to, String subject, String htmlBody) {

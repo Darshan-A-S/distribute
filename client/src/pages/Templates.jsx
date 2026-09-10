@@ -154,7 +154,7 @@ export default function Templates() {
       setForkFrom(t.id)
       setIsFork(true)
       setShowForm(true)
-      toast.success('Copied to your templates — personalize and save')
+      toast.success('Copied to your templates; personalize and save')
     } catch (e) {
       toast.error(e.message)
     } finally {

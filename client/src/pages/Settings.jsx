@@ -1,11 +1,21 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { api } from '../api/api'
 import { useAuth } from '../context/AuthContext'
-import { ShieldCheck, Mail, KeyRound, CheckCircle2, AlertTriangle } from 'lucide-react'
+import { ShieldCheck, Mail, KeyRound, CheckCircle2, AlertTriangle, User, Server, TriangleAlert, Calendar, FileText, Layers, Send } from 'lucide-react'
+import ConfirmDialog from '../components/ConfirmDialog'
+import { avatarUrl } from '../components/ProfileDialog'
+
+const TABS = [
+  { id: 'profile', label: 'Profile', icon: User },
+  { id: 'smtp', label: 'SMTP Settings', icon: Server },
+  { id: 'password', label: 'Change Password', icon: KeyRound },
+  { id: 'danger', label: 'Delete Account', icon: TriangleAlert },
+]
 
 export default function Settings() {
-  const { user, setUser } = useAuth()
+  const { user, setUser, logout } = useAuth()
+  const [tab, setTab] = useState('profile')
   const [form, setForm] = useState({
     email: user?.email || '',
     smtpHost: user?.smtpHost || 'smtp.gmail.com',
@@ -28,6 +38,24 @@ export default function Settings() {
   // Change password state
   const [pw, setPw] = useState({ current: '', next: '', confirm: '' })
   const [changing, setChanging] = useState(false)
+
+  // Delete account state
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  // Profile stats
+  const [templateCount, setTemplateCount] = useState('—')
+  const [batchCount, setBatchCount] = useState('—')
+  const [sentCount, setSentCount] = useState('—')
+
+  useEffect(() => {
+    if (tab !== 'profile') return
+    api.getTemplates().then((t) => setTemplateCount(t.length)).catch(() => {})
+    api.getBatches().then((b) => setBatchCount(b.length)).catch(() => {})
+    api.getRecentSends()
+      .then((j) => setSentCount(j.reduce((n, x) => n + (x.success || 0), 0)))
+      .catch(() => {})
+  }, [tab])
 
   const set = (k) => (e) => {
     const v = e.target.value
@@ -94,193 +122,299 @@ export default function Settings() {
     }
   }
 
+  const handleDeleteAccount = async () => {
+    setDeleting(true)
+    try {
+      await api.deleteAccount()
+      toast.success('Account deleted')
+      setConfirmDelete(false)
+      await logout()
+    } catch (err) {
+      toast.error(err.message)
+      setDeleting(false)
+    }
+  }
+
   return (
-    <div className="max-w-xl">
+    <div className="max-w-4xl">
       <div className="mb-6">
         <h1 className="page-title">Settings</h1>
-        <p className="text-sm text-slate-500 mt-1">Configure your sender identity and mail server.</p>
+        <p className="text-sm text-slate-500 mt-1">Manage your profile, mail server, password, and account.</p>
       </div>
 
-      <form onSubmit={submit} className="space-y-5">
-        {/* Email Verification */}
-        <section className="card p-5">
-          <div className="flex items-center gap-3 mb-1">
-            <h2 className="text-lg font-semibold text-slate-100">Email verification</h2>
-            {isVerified ? (
-              <span className="inline-flex items-center gap-1 rounded-md bg-teal-500/10 border border-teal-500/20 px-2 py-0.5 text-xs font-medium text-teal-300">
-                <CheckCircle2 className="h-3 w-3" /> Verified
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-300">
-                <AlertTriangle className="h-3 w-3" /> Not verified
-              </span>
-            )}
-          </div>
-          <p className="text-sm text-slate-500 mb-4">
-            Verify your email before configuring SMTP settings.
-          </p>
+      <div className="flex flex-col gap-6 md:flex-row">
+        <nav className="flex shrink-0 gap-1 md:w-56 md:flex-col">
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                tab === t.id
+                  ? 'bg-teal-400/10 text-teal-300'
+                  : t.id === 'danger'
+                    ? 'text-red-400/80 hover:bg-red-500/10 hover:text-red-300'
+                    : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
+              }`}
+            >
+              <t.icon className="h-4 w-4" />
+              {t.label}
+            </button>
+          ))}
+        </nav>
 
-          {!isVerified && (
-            <>
-              <div className="mb-3">
-                <label className="label">Your email</label>
-                <div className="flex gap-2">
-                  <input
-                    type="email"
-                    value={form.email}
-                    onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                    placeholder="you@gmail.com"
-                    className="input flex-1"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleSendOtp}
-                    disabled={!hasEmail || sendingOtp}
-                    className="btn-secondary shrink-0"
-                  >
-                    {sendingOtp ? 'Sending...' : 'Send OTP'}
-                  </button>
+        <div className="min-w-0 flex-1">
+          {tab === 'profile' && (
+            <section className="card p-5">
+              <div className="flex items-center gap-3 mb-5">
+                <img src={avatarUrl(user?.username)} alt="Profile" className="h-14 w-14 rounded-xl bg-slate-800" />
+                <p className="text-lg font-semibold tracking-tight text-slate-50">{user?.username}</p>
+              </div>
+
+              <div className="mb-5 space-y-3">
+                <div>
+                  <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-slate-500">
+                    <Mail className="h-3.5 w-3.5" /> Email
+                  </p>
+                  <p className="mt-0.5 flex items-center gap-1.5 text-sm text-slate-200">
+                    {user?.email || '—'}
+                    {isVerified && <ShieldCheck className="h-3.5 w-3.5 text-teal-400" />}
+                  </p>
+                </div>
+                <div>
+                  <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-slate-500">
+                    <Calendar className="h-3.5 w-3.5" /> Member since
+                  </p>
+                  <p className="mt-0.5 text-sm text-slate-200">
+                    {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}
+                  </p>
                 </div>
               </div>
 
-              {otpSent && (
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    placeholder="6-digit code"
-                    maxLength={6}
-                    className="input flex-1 tracking-widest font-mono"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleVerifyOtp}
-                    disabled={verifying || otp.length !== 6}
-                    className="btn-primary shrink-0"
-                  >
-                    {verifying ? 'Verifying...' : 'Verify'}
-                  </button>
-                </div>
+              <div className="grid grid-cols-3 gap-3 mb-5">
+                {[
+                  { label: 'Templates', value: templateCount, icon: FileText },
+                  { label: 'Batches', value: batchCount, icon: Layers },
+                  { label: 'Emails sent', value: sentCount, icon: Send },
+                ].map((s) => (
+                  <div key={s.label} className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3 text-center">
+                    <s.icon className="mx-auto mb-1.5 h-4 w-4 text-teal-400" />
+                    <p className="text-lg font-semibold text-slate-50">{s.value}</p>
+                    <p className="text-[11px] text-slate-500">{s.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t border-white/[0.06] pt-4">
+                <div className="flex items-center gap-3 mb-1">
+                  <h2 className="text-lg font-semibold text-slate-100">Email verification</h2>
+                {isVerified ? (
+                  <span className="inline-flex items-center gap-1 rounded-md bg-teal-500/10 border border-teal-500/20 px-2 py-0.5 text-xs font-medium text-teal-300">
+                    <CheckCircle2 className="h-3 w-3" /> Verified
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-300">
+                    <AlertTriangle className="h-3 w-3" /> Not verified
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-slate-500 mb-4">
+                Your email is your sender identity and is required to configure SMTP settings.
+              </p>
+
+              {!isVerified && (
+                <>
+                  <div className="mb-3">
+                    <label className="label">Your email</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="email"
+                        value={form.email}
+                        onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                        placeholder="you@gmail.com"
+                        className="input flex-1"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSendOtp}
+                        disabled={!hasEmail || sendingOtp}
+                        className="btn-secondary shrink-0"
+                      >
+                        {sendingOtp ? 'Sending...' : 'Send OTP'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {otpSent && (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        placeholder="6-digit code"
+                        maxLength={6}
+                        className="input flex-1 tracking-widest font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleVerifyOtp}
+                        disabled={verifying || otp.length !== 6}
+                        className="btn-primary shrink-0"
+                      >
+                        {verifying ? 'Verifying...' : 'Verify'}
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
-            </>
+              </div>
+            </section>
           )}
-        </section>
 
-        {/* SMTP Config */}
-        <section className={`card p-5 ${!isVerified ? 'opacity-50 pointer-events-none' : ''}`}>
-          <div className="flex items-center gap-2 mb-1">
-            <h2 className="text-lg font-semibold text-slate-100">SMTP server</h2>
-            {!isVerified && <ShieldCheck className="h-4 w-4 text-amber-400" />}
-          </div>
-          <p className="text-sm text-slate-500 mb-4">
-            {isVerified
-              ? 'Use your own mail server so emails are genuinely sent from your account.'
-              : 'Verify your email above to configure SMTP settings.'}
-          </p>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="label">SMTP host</label>
-              <input
-                type="text"
-                value={form.smtpHost}
-                onChange={set('smtpHost')}
-                placeholder="smtp.gmail.com"
-                className="input"
-              />
-            </div>
-            <div>
-              <label className="label">Port</label>
-              <input
-                type="number"
-                value={form.smtpPort}
-                onChange={set('smtpPort')}
-                placeholder="587"
-                className="input"
-              />
-            </div>
-            <div>
-              <label className="label">Username</label>
-              <input
-                type="text"
-                value={form.smtpUsername}
-                onChange={(e) => setForm((f) => ({ ...f, smtpUsername: e.target.value }))}
-                placeholder="you@gmail.com"
-                className="input"
-              />
-            </div>
-            <div>
-              <label className="label">App password</label>
-              <input
-                type="password"
-                value={form.smtpPassword}
-                onChange={(e) => setForm((f) => ({ ...f, smtpPassword: e.target.value }))}
-                placeholder="Leave blank to keep current"
-                autoComplete="new-password"
-                className="input"
-              />
-            </div>
-          </div>
-          <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-slate-400">
-            <input
-              type="checkbox"
-              checked={form.startTls}
-              onChange={(e) => setForm((f) => ({ ...f, startTls: e.target.checked }))}
-              className="h-4 w-4 rounded border-white/20 bg-slate-950 accent-teal-500"
-            />
-            Use STARTTLS
-          </label>
-        </section>
+          {tab === 'smtp' && (
+            <form onSubmit={submit} className="space-y-5">
+              <section className={`card p-5 ${!isVerified ? 'opacity-50 pointer-events-none' : ''}`}>
+                <div className="flex items-center gap-2 mb-1">
+                  <h2 className="text-lg font-semibold text-slate-100">SMTP server</h2>
+                  {!isVerified && <ShieldCheck className="h-4 w-4 text-amber-400" />}
+                </div>
+                <p className="text-sm text-slate-500 mb-4">
+                  {isVerified
+                    ? 'Use your own mail server so emails are genuinely sent from your account.'
+                    : 'Verify your email in the Profile tab to configure SMTP settings.'}
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="label">SMTP host</label>
+                    <input
+                      type="text"
+                      value={form.smtpHost}
+                      onChange={set('smtpHost')}
+                      placeholder="smtp.gmail.com"
+                      className="input"
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Port</label>
+                    <input
+                      type="number"
+                      value={form.smtpPort}
+                      onChange={set('smtpPort')}
+                      placeholder="587"
+                      className="input"
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Username</label>
+                    <input
+                      type="text"
+                      value={form.smtpUsername}
+                      onChange={(e) => setForm((f) => ({ ...f, smtpUsername: e.target.value }))}
+                      placeholder="you@gmail.com"
+                      className="input"
+                    />
+                  </div>
+                  <div>
+                    <label className="label">App password</label>
+                    <input
+                      type="password"
+                      value={form.smtpPassword}
+                      onChange={(e) => setForm((f) => ({ ...f, smtpPassword: e.target.value }))}
+                      placeholder="Leave blank to keep current"
+                      autoComplete="new-password"
+                      className="input"
+                    />
+                  </div>
+                </div>
+                <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-slate-400">
+                  <input
+                    type="checkbox"
+                    checked={form.startTls}
+                    onChange={(e) => setForm((f) => ({ ...f, startTls: e.target.checked }))}
+                    className="h-4 w-4 rounded border-white/20 bg-slate-950 accent-teal-500"
+                  />
+                  Use STARTTLS
+                </label>
+              </section>
 
-        <button type="submit" disabled={busy || !isVerified} className="btn-primary">
-          {busy ? 'Saving...' : 'Save settings'}
-        </button>
-      </form>
+              <button type="submit" disabled={busy || !isVerified} className="btn-primary">
+                {busy ? 'Saving...' : 'Save settings'}
+              </button>
+            </form>
+          )}
 
-      <form onSubmit={handleChangePassword} className="card p-5 space-y-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <h2 className="text-lg font-semibold text-slate-100">Change password</h2>
-            <KeyRound className="h-4 w-4 text-slate-500" />
-          </div>
-          <p className="text-sm text-slate-500">Update the password used to sign in to your account.</p>
+          {tab === 'password' && (
+            <form onSubmit={handleChangePassword} className="card p-5 space-y-4">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-100">Change password</h2>
+                <p className="text-sm text-slate-500">Update the password used to sign in to your account.</p>
+              </div>
+              <div>
+                <label className="label">Current password</label>
+                <input
+                  type="password"
+                  value={pw.current}
+                  onChange={(e) => setPw((p) => ({ ...p, current: e.target.value }))}
+                  autoComplete="current-password"
+                  className="input"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="label">New password</label>
+                  <input
+                    type="password"
+                    value={pw.next}
+                    onChange={(e) => setPw((p) => ({ ...p, next: e.target.value }))}
+                    autoComplete="new-password"
+                    className="input"
+                  />
+                </div>
+                <div>
+                  <label className="label">Confirm new password</label>
+                  <input
+                    type="password"
+                    value={pw.confirm}
+                    onChange={(e) => setPw((p) => ({ ...p, confirm: e.target.value }))}
+                    autoComplete="new-password"
+                    className="input"
+                  />
+                </div>
+              </div>
+              <button type="submit" disabled={changing} className="btn-secondary">
+                {changing ? 'Changing...' : 'Change password'}
+              </button>
+            </form>
+          )}
+
+          {tab === 'danger' && (
+            <section className="card border-red-500/25 bg-red-500/[0.02] p-5">
+              <div className="flex items-center gap-2 mb-1">
+                <TriangleAlert className="h-4 w-4 text-red-400" />
+                <h2 className="text-lg font-semibold text-red-300">Danger Zone</h2>
+              </div>
+              <p className="text-sm text-slate-500 mb-4">
+                Deleting your account is permanent and irreversible. Your templates and recipient
+                batches will be removed along with it.
+              </p>
+              <button onClick={() => setConfirmDelete(true)} className="btn-danger">
+                Delete account
+              </button>
+            </section>
+          )}
         </div>
-        <div>
-          <label className="label">Current password</label>
-          <input
-            type="password"
-            value={pw.current}
-            onChange={(e) => setPw((p) => ({ ...p, current: e.target.value }))}
-            autoComplete="current-password"
-            className="input"
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="label">New password</label>
-            <input
-              type="password"
-              value={pw.next}
-              onChange={(e) => setPw((p) => ({ ...p, next: e.target.value }))}
-              autoComplete="new-password"
-              className="input"
-            />
-          </div>
-          <div>
-            <label className="label">Confirm new password</label>
-            <input
-              type="password"
-              value={pw.confirm}
-              onChange={(e) => setPw((p) => ({ ...p, confirm: e.target.value }))}
-              autoComplete="new-password"
-              className="input"
-            />
-          </div>
-        </div>
-        <button type="submit" disabled={changing} className="btn-secondary">
-          {changing ? 'Changing...' : 'Change password'}
-        </button>
-      </form>
+      </div>
+
+      {confirmDelete && (
+        <ConfirmDialog
+          danger
+          title="Delete account"
+          message={`This will permanently delete your account (${user?.username}). This cannot be undone.`}
+          confirmLabel="Delete"
+          loading={deleting}
+          onConfirm={handleDeleteAccount}
+          onCancel={() => setConfirmDelete(false)}
+        />
+      )}
     </div>
   )
 }

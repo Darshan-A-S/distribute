@@ -18,6 +18,9 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.util.ByteArrayDataSource;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,54 +36,67 @@ public class EmailService {
 
     private static final Pattern VAR_PATTERN = Pattern.compile("\\{(\\w+)}");
 
-    @Async
+    // One lock per user: only one batch per user runs at a time, the rest queue (fair = FIFO).
+    private final Map<Long, Lock> userLocks = new ConcurrentHashMap<>();
+
+    @Async("emailExecutor")
     public void sendBatch(EmailTemplate template, List<Recipient> recipients, SendJob job, UserAccount user) {
-        JavaMailSender sender = senderFor(user);
-        String from = (user.getEmail() != null && !user.getEmail().isBlank())
-                ? user.getEmail() : user.getSmtpUsername();
-        int success = 0, failed = 0;
+        Lock lock = userLocks.computeIfAbsent(user.getId(), id -> new ReentrantLock(true));
+        lock.lock();
+        try {
+            job.setStatus("RUNNING");
+            sendJobRepo.save(job);
 
-        for (Recipient recipient : recipients) {
-            try {
-                Map<String, String> vars = parseVariables(recipient.getVariablesJson());
-                String subject = interpolate(template.getSubject(), vars);
-                String body = interpolate(template.getBody(), vars);
+            JavaMailSender sender = senderFor(user);
+            String from = (user.getEmail() != null && !user.getEmail().isBlank())
+                    ? user.getEmail() : user.getSmtpUsername();
+            int success = 0, failed = 0;
 
-                MimeMessage message = sender.createMimeMessage();
-                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-                helper.setFrom(from);
-                helper.setTo(recipient.getEmail());
-                helper.setSubject(subject);
+            for (Recipient recipient : recipients) {
+                try {
+                    Map<String, String> vars = parseVariables(recipient.getVariablesJson());
+                    String subject = interpolate(template.getSubject(), vars);
+                    String body = interpolate(template.getBody(), vars);
 
-                if (certificateService.hasCertificate(template)) {
-                    byte[] cert = certificateService.render(template, vars);
-                    if (cert != null) {
-                        helper.addAttachment(certificateFileName(recipient), new ByteArrayDataSource(cert, "application/pdf"));
+                    MimeMessage message = sender.createMimeMessage();
+                    MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+                    helper.setFrom(from);
+                    helper.setTo(recipient.getEmail());
+                    helper.setSubject(subject);
+
+                    if (certificateService.hasCertificate(template)) {
+                        byte[] cert = certificateService.render(template, vars);
+                        if (cert != null) {
+                            helper.addAttachment(certificateFileName(recipient), new ByteArrayDataSource(cert, "application/pdf"));
+                        }
                     }
+                    helper.setText(body, true); // true = HTML
+
+                    sender.send(message);
+
+                    recipient.setSent(true);
+                    recipient.setSentAt(LocalDateTime.now());
+                    recipientRepo.save(recipient);
+                    success++;
+                    job.setSuccess(success);
+                    sendJobRepo.save(job);
+
+                    log.info("Sent to {} ({})", recipient.getName(), recipient.getEmail());
+                } catch (Exception e) {
+                    failed++;
+                    job.setFailed(failed);
+                    sendJobRepo.save(job);
+                    log.error("Failed to send to {} ({}): {}", recipient.getName(), recipient.getEmail(), e.getMessage());
                 }
-                helper.setText(body, true); // true = HTML
-
-                sender.send(message);
-
-                recipient.setSent(true);
-                recipient.setSentAt(LocalDateTime.now());
-                recipientRepo.save(recipient);
-                success++;
-
-                log.info("Sent to {} ({})", recipient.getName(), recipient.getEmail());
-            } catch (Exception e) {
-                failed++;
-                log.error("Failed to send to {} ({}): {}", recipient.getName(), recipient.getEmail(), e.getMessage());
             }
+
+            log.info("Batch complete: {} sent, {} failed out of {}", success, failed, recipients.size());
+        } finally {
+            job.setStatus("DONE");
+            job.setFinishedAt(LocalDateTime.now());
+            sendJobRepo.save(job);
+            lock.unlock();
         }
-
-        job.setSuccess(success);
-        job.setFailed(failed);
-        job.setStatus("DONE");
-        job.setFinishedAt(LocalDateTime.now());
-        sendJobRepo.save(job);
-
-        log.info("Batch complete: {} sent, {} failed out of {}", success, failed, recipients.size());
     }
 
     private JavaMailSender senderFor(UserAccount user) {
