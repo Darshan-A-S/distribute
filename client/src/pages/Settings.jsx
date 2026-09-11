@@ -162,9 +162,7 @@ export default function Settings() {
   const handleSendOtp = async () => {
     setSendingOtp(true)
     try {
-      const updated = await api.updateSettings(form)
-      setUser(updated)
-      await api.sendVerification()
+      await api.sendVerification(form.email)
       setOtpSent(true)
       toast.success('OTP sent to your email')
     } catch (err) {
@@ -178,8 +176,8 @@ export default function Settings() {
     if (!otp || otp.length !== 6) return toast.error('Enter the 6-digit code')
     setVerifying(true)
     try {
-      await api.verifyEmail(otp)
-      setUser({ ...user, emailVerified: true })
+      const updated = await api.verifyEmail(otp, form.email)
+      setUser(updated)
       setOtpSent(false)
       setOtp('')
       toast.success('Email verified!')

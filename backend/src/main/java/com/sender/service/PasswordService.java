@@ -64,22 +64,22 @@ public class PasswordService {
         repo.save(user);
     }
 
-    public void sendVerificationOtp(UserAccount user) {
-        if (user.getEmail() == null || user.getEmail().isBlank()) {
-            throw new RuntimeException("No email set on profile");
+    public void sendVerificationOtp(UserAccount user, String email) {
+        if (email == null || email.isBlank()) {
+            throw new RuntimeException("Please enter an email address");
         }
-        if (repo.existsByEmailAndEmailVerifiedTrueAndIdNot(user.getEmail(), user.getId())) {
+        if (repo.existsByEmailAndEmailVerifiedTrueAndIdNot(email, user.getId())) {
             throw new RuntimeException("This email is already used by another user");
         }
         String otp = String.valueOf((int) (Math.random() * 900000) + 100000);
         user.setVerificationOtp(otp);
         user.setVerificationOtpExpiry(LocalDateTime.now().plusMinutes(15));
         repo.save(user);
-        sendEmail(user.getEmail(), "Verify Your Email", mail("Verify Your Email", "templates/mail/otp.html", Map.of("OTP", otp)));
-        log.info("Verification OTP sent to {}", user.getEmail());
+        sendEmail(email, "Verify Your Email", mail("Verify Your Email", "templates/mail/otp.html", Map.of("OTP", otp)));
+        log.info("Verification OTP sent to {}", email);
     }
 
-    public void verifyEmail(UserAccount user, String otp) {
+    public void verifyEmail(UserAccount user, String otp, String email) {
         if (user.getVerificationOtp() == null || user.getVerificationOtpExpiry() == null) {
             throw new RuntimeException("No verification pending. Request a new code.");
         }
@@ -89,9 +89,13 @@ public class PasswordService {
         if (!user.getVerificationOtp().equals(otp)) {
             throw new RuntimeException("Invalid OTP");
         }
-        if (repo.existsByEmailAndEmailVerifiedTrueAndIdNot(user.getEmail(), user.getId())) {
+        if (email == null || email.isBlank()) {
+            throw new RuntimeException("Please enter an email address");
+        }
+        if (repo.existsByEmailAndEmailVerifiedTrueAndIdNot(email, user.getId())) {
             throw new RuntimeException("This email is already used by another user");
         }
+        user.setEmail(email);
         user.setEmailVerified(true);
         user.setVerificationOtp(null);
         user.setVerificationOtpExpiry(null);

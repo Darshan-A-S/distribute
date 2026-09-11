@@ -127,12 +127,12 @@ public class AuthController {
     }
 
     @PostMapping("/send-verification")
-    public ResponseEntity<?> sendVerification(Authentication auth) {
+    public ResponseEntity<?> sendVerification(@RequestBody SendVerificationRequest req, Authentication auth) {
         if (auth == null || !(auth.getPrincipal() instanceof UserAccount user)) {
             return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
         }
         try {
-            passwordService.sendVerificationOtp(user);
+            passwordService.sendVerificationOtp(user, req.email());
             return ResponseEntity.ok(Map.of("message", "Verification OTP sent"));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -145,8 +145,8 @@ public class AuthController {
             return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
         }
         try {
-            passwordService.verifyEmail(user, req.otp());
-            return ResponseEntity.ok(Map.of("message", "Email verified"));
+            passwordService.verifyEmail(user, req.otp(), req.email());
+            return ResponseEntity.ok(userService.toDto(user));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
