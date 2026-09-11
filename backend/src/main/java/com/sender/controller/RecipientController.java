@@ -3,6 +3,7 @@ package com.sender.controller;
 import com.sender.dto.ExcelPreview;
 import com.sender.model.Recipient;
 import com.sender.model.UserAccount;
+import com.sender.repository.RecipientRepository;
 import com.sender.service.ExcelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +25,32 @@ import java.util.Map;
 public class RecipientController {
 
     private final ExcelService excelService;
+    private final RecipientRepository recipientRepo;
+
+    @GetMapping("/stats/daily")
+    public List<Map<String, Object>> dailyStats(
+            @RequestParam(defaultValue = "14") int days, Authentication auth) {
+        LocalDate since = LocalDate.now().minusDays(days - 1L);
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (int i = 0; i < days; i++) {
+            out.add(new LinkedHashMap<>(Map.of("date", since.plusDays(i), "count", 0L)));
+        }
+        Map<LocalDate, Long> byDay = new LinkedHashMap<>();
+        recipientRepo.countSentByDay(ownerId(auth), since.atStartOfDay())
+                .forEach(row -> byDay.put(toLocalDate(row[0]), ((Number) row[1]).longValue()));
+        out.forEach(m -> {
+            Long c = byDay.get(m.get("date"));
+            if (c != null) m.put("count", c);
+        });
+        return out;
+    }
+
+    private static LocalDate toLocalDate(Object o) {
+        if (o instanceof LocalDate ld) return ld;
+        if (o instanceof java.sql.Date d) return d.toLocalDate();
+        if (o instanceof java.sql.Timestamp t) return t.toLocalDateTime().toLocalDate();
+        return LocalDate.parse(String.valueOf(o));
+    }
 
     @PostMapping("/upload/preview")
     public ExcelPreview preview(@RequestParam("file") MultipartFile file) {

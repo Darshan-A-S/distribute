@@ -2,16 +2,98 @@ import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { api } from '../api/api'
 import { useAuth } from '../context/AuthContext'
-import { ShieldCheck, Mail, KeyRound, CheckCircle2, AlertTriangle, User, Server, TriangleAlert, Calendar, FileText, Layers, Send } from 'lucide-react'
+import { ShieldCheck, Mail, KeyRound, CheckCircle2, AlertTriangle, User, Users, Server, TriangleAlert, Calendar, FileText, Layers, Send, BarChart3 } from 'lucide-react'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { avatarUrl } from '../components/ProfileDialog'
 
 const TABS = [
   { id: 'profile', label: 'Profile', icon: User },
+  { id: 'stats', label: 'Stats', icon: BarChart3 },
   { id: 'smtp', label: 'SMTP Settings', icon: Server },
   { id: 'password', label: 'Change Password', icon: KeyRound },
   { id: 'danger', label: 'Delete Account', icon: TriangleAlert },
 ]
+
+function StatCard({ icon: Icon, label, value }) {
+  return (
+    <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3 text-center">
+      <Icon className="mx-auto mb-1.5 h-4 w-4 text-teal-400" />
+      <p className="text-lg font-semibold text-slate-50">{value}</p>
+      <p className="text-[11px] text-slate-500">{label}</p>
+    </div>
+  )
+}
+
+function StatsTab() {
+  const [daily, setDaily] = useState([])
+  const [batches, setBatches] = useState([])
+  const [templateCount, setTemplateCount] = useState('—')
+
+  useEffect(() => {
+    api.getDailyStats(14).then(setDaily).catch(() => {})
+    api.getBatches().then(setBatches).catch(() => {})
+    api.getTemplates().then((t) => setTemplateCount(t.length)).catch(() => {})
+  }, [])
+
+  const batchTotal = batches.reduce((n, b) => n + (b.total || 0), 0)
+  const batchSent = batches.reduce((n, b) => n + (b.sent || 0), 0)
+  const maxDaily = Math.max(1, ...daily.map((d) => d.count || 0))
+
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <StatCard icon={FileText} label="Templates" value={templateCount} />
+        <StatCard icon={Layers} label="Batches" value={batches.length} />
+        <StatCard icon={Users} label="Total recipients" value={batchTotal} />
+        <StatCard icon={Send} label="Emails sent" value={batchSent} />
+      </div>
+
+      <section className="card p-5">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-slate-100">Sends per day</h2>
+          <span className="text-[11px] text-slate-500">last 14 days</span>
+        </div>
+        <div className="flex h-40 items-end gap-1.5">
+          {daily.map((d, i) => (
+            <div key={i} className="group relative flex h-full flex-1 flex-col justify-end">
+              <div
+                className={`relative w-full rounded-sm transition-colors ${d.count > 0 ? 'bg-teal-500/80' : 'bg-white/[0.06]'}`}
+                style={{ height: `${d.count > 0 ? Math.round((d.count / maxDaily) * 100) : 4}%` }}
+              >
+                <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md border border-white/10 bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-200 opacity-0 transition-opacity group-hover:opacity-100">
+                  {d.count} {d.count === 1 ? 'send' : 'sends'}
+                </div>
+              </div>
+              <p className="mt-1 text-center text-[9px] text-slate-500">
+                {new Date(d.date).toLocaleDateString('en-US', { weekday: 'narrow' })}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="card p-5">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-slate-100">Day by day</h2>
+          <span className="text-[11px] text-slate-500">last 5 days</span>
+        </div>
+        <div className="divide-y divide-white/[0.04]">
+          {daily.every((d) => d.count === 0) && (
+            <p className="py-2 text-sm text-slate-500">No sends in the last 5 days.</p>
+          )}
+          {[...daily].reverse().slice(0, 5).map((d, i) => (
+            <div key={i} className="flex items-center justify-between py-1.5 text-sm">
+              <span className="text-slate-400">
+                {new Date(d.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+              </span>
+              <span className={d.count > 0 ? 'font-medium text-slate-200' : 'text-slate-600'}>{d.count}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  )
+}
 
 export default function Settings() {
   const { user, setUser, logout } = useAuth()
@@ -269,6 +351,8 @@ export default function Settings() {
               </div>
             </section>
           )}
+
+          {tab === 'stats' && <StatsTab />}
 
           {tab === 'smtp' && (
             <form onSubmit={submit} className="space-y-5">

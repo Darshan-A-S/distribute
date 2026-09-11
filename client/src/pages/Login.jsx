@@ -31,7 +31,7 @@ export default function Login() {
       }
       await (mode === 'login' ? login(username, password) : register(username, password))
       toast.success(mode === 'login' ? 'Welcome back' : 'Account created')
-      navigate('/')
+      navigate('/app')
     } catch (err) {
       toast.error(err.message)
     } finally {

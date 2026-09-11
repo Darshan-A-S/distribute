@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Send, ShieldCheck, Settings2, Check, ArrowRight, FileText, Users, Type, Eye, Trash2 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -341,6 +342,36 @@ function CertificateEditorCard() {
 export default function Landing() {
   const { user } = useAuth()
 
+  useEffect(() => {
+    const reveal = document.querySelectorAll('[data-reveal]')
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.classList.add('is-visible')
+          io.unobserve(e.target)
+        }
+      }),
+      { threshold: 0.15, rootMargin: '0px 0px -40px' }
+    )
+    reveal.forEach((el) => io.observe(el))
+
+    let raf = 0
+    const onScroll = () => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => {
+        const bg = document.querySelector('[data-parallax]')
+        if (bg) bg.style.transform = `translateY(${window.scrollY * 0.25}px)`
+      })
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+
+    return () => {
+      io.disconnect()
+      window.removeEventListener('scroll', onScroll)
+      cancelAnimationFrame(raf)
+    }
+  }, [])
+
   const items = [
     'Share all participants their e-certificates at once',
     'Send completion certificates after every course',
@@ -381,13 +412,22 @@ export default function Landing() {
       <section className="relative mx-auto max-w-6xl px-6 pb-14 pt-20 text-center">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 h-[800px] bg-[radial-gradient(circle,rgba(129,193,75,0.25)_1.25px,transparent_1.25px)] [background-size:22px_22px] [mask-image:radial-gradient(70%_60%_at_50%_38%,black_30%,transparent_80%)]"
+          data-parallax
+          className="pointer-events-none absolute inset-x-0 top-0 h-[800px] bg-[radial-gradient(circle,rgba(129,193,75,0.25)_1.25px,transparent_1.25px)] [background-size:22px_22px] [mask-image:radial-gradient(70%_60%_at_50%_38%,black_30%,transparent_80%)]"
         />
         <Eyebrow>PDF certificates, delivered by email</Eyebrow>
-        <h1 className="font-stack mx-auto mt-8 max-w-3xl text-5xl font-semibold leading-[1.15] tracking-wide text-slate-50 md:text-6xl">
+        <h1
+          data-reveal
+          style={{ '--reveal-delay': '80ms' }}
+          className="font-stack mx-auto mt-8 max-w-3xl text-5xl font-semibold leading-[1.15] tracking-wide text-slate-50 md:text-6xl"
+        >
           Personalized <span className="text-teal-500">certificates</span>, at scale.
         </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-400">
+        <p
+          data-reveal
+          style={{ '--reveal-delay': '180ms' }}
+          className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-400"
+        >
           One template, one roster, thousands of personalized PDFs in minutes.
         </p>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
@@ -397,7 +437,7 @@ export default function Landing() {
           <a href="#how-it-works" className="btn-secondary px-6 py-3 text-base">How it works</a>
         </div>
 
-<div className="relative mx-auto mt-16 grid max-w-5xl gap-5 md:grid-cols-4">
+<div data-reveal style={{ '--reveal-delay': '280ms' }} className="relative mx-auto mt-16 grid max-w-5xl gap-5 md:grid-cols-4">
           <div className="md:col-span-2 md:row-span-2 h-full">
             <AppMock />
           </div>
@@ -421,7 +461,7 @@ export default function Landing() {
       </section>
 
       <section id="how-it-works" className="mx-auto max-w-6xl px-6 pb-24 scroll-mt-[28vh]">
-        <div className="grid items-center gap-16 md:grid-cols-5">
+        <div data-reveal className="grid items-center gap-16 md:grid-cols-5">
           <div className="md:col-span-2">
             <Eyebrow>Design once</Eyebrow>
             <h2 className="mt-6 text-3xl font-semibold tracking-tight text-slate-50 md:text-4xl">
@@ -451,9 +491,9 @@ export default function Landing() {
       <section className="mx-auto max-w-6xl px-6 pb-24">
         <div className="grid items-center gap-16 md:grid-cols-2">
           <div className="order-2 flex justify-center md:order-1 md:justify-start">
-            <RecipientsCard />
+            <div data-reveal className="w-full max-w-md"><RecipientsCard /></div>
           </div>
-          <div className="order-1 md:order-2">
+          <div data-reveal style={{ '--reveal-delay': '120ms' }} className="order-1 md:order-2">
             <Eyebrow>Upload a roster</Eyebrow>
             <h2 className="mt-6 text-3xl font-semibold tracking-tight text-slate-50 md:text-4xl">
               Excel in, addresses out
@@ -477,7 +517,7 @@ export default function Landing() {
 
       <section className="mx-auto max-w-6xl px-6 pb-24">
         <div className="grid gap-6 md:grid-cols-3">
-          <div className="card p-6">
+          <div data-reveal className="card p-6">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-500/10">
               <Send className="h-5 w-5 text-teal-400" />
             </div>
@@ -486,7 +526,7 @@ export default function Landing() {
               Fire off as many batches as you like. They run one at a time per account, in order, so nothing collides.
             </p>
           </div>
-          <div className="card p-6">
+          <div data-reveal style={{ '--reveal-delay': '120ms' }} className="card p-6">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-500/10">
               <ShieldCheck className="h-5 w-5 text-teal-400" />
             </div>
@@ -495,7 +535,7 @@ export default function Landing() {
               Every single send is recorded as it happens. Restart the machine and a stuck batch just picks up where it left off.
             </p>
           </div>
-          <div className="card p-6">
+          <div data-reveal style={{ '--reveal-delay': '240ms' }} className="card p-6">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-500/10">
               <Settings2 className="h-5 w-5 text-teal-400" />
             </div>
@@ -508,7 +548,7 @@ export default function Landing() {
       </section>
 
       <section className="mx-auto max-w-6xl px-6 pb-24">
-        <div className="card rounded-2xl border-white/[0.08] px-8 py-16 text-center">
+        <div data-reveal className="card rounded-2xl border-white/[0.08] px-8 py-16 text-center">
           <Eyebrow>Ready when you are</Eyebrow>
           <h2 className="mx-auto mt-6 max-w-xl text-3xl font-semibold tracking-tight text-slate-50 md:text-4xl">
             Start distributing today

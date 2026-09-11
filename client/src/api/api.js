@@ -74,4 +74,7 @@ export const api = {
   send: (data) => request('/send', { method: 'POST', body: JSON.stringify(data) }),
   getActiveSends: () => request('/send/jobs/active'),
   getRecentSends: () => request('/send/recent'),
+
+  // Stats
+  getDailyStats: (days) => request(`/recipients/stats/daily?days=${days || 14}`),
 }

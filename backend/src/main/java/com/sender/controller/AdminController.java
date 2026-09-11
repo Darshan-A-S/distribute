@@ -14,8 +14,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
-public class
-    AdminController {
+public class AdminController {
 
     private final UserAccountService userService;
 
