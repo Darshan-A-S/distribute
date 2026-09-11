@@ -106,14 +106,19 @@ public class EmailService {
         }
         JavaMailSenderImpl impl = new JavaMailSenderImpl();
         impl.setHost(user.getSmtpHost());
-        impl.setPort(user.getSmtpPort() != null && user.getSmtpPort() > 0 ? user.getSmtpPort() : 587);
+        int port = user.getSmtpPort() != null && user.getSmtpPort() > 0 ? user.getSmtpPort() : 587;
+        impl.setPort(port);
         impl.setUsername(user.getSmtpUsername());
         impl.setPassword(user.getSmtpPassword() != null ? user.getSmtpPassword() : "");
         Properties props = impl.getJavaMailProperties();
         props.put("mail.smtp.auth", "true");
-        String startTls = String.valueOf(user.getSmtpStartTls() == null || user.getSmtpStartTls());
-        props.put("mail.smtp.starttls.enable", startTls);
-        props.put("mail.smtp.starttls.required", startTls);
+        if (port == 465) {
+            props.put("mail.smtp.ssl.enable", "true");
+        } else {
+            String startTls = String.valueOf(user.getSmtpStartTls() == null || user.getSmtpStartTls());
+            props.put("mail.smtp.starttls.enable", startTls);
+            props.put("mail.smtp.starttls.required", startTls);
+        }
         return impl;
     }
 
