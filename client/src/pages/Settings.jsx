@@ -162,6 +162,8 @@ export default function Settings() {
   const handleSendOtp = async () => {
     setSendingOtp(true)
     try {
+      const updated = await api.updateSettings(form)
+      setUser(updated)
       await api.sendVerification()
       setOtpSent(true)
       toast.success('OTP sent to your email')
