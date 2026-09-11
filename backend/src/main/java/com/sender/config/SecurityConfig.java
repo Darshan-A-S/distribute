@@ -53,7 +53,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/templates/library/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/templates/*/publish").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .anyRequest().authenticated())
+                        .requestMatchers("/api/**").authenticated()
+                        .anyRequest().permitAll())
                 .exceptionHandling(h -> h.authenticationEntryPoint((request, response, ex) -> {
                     response.setStatus(401);
                     response.setContentType("application/json");
