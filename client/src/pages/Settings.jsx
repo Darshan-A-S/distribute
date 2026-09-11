@@ -101,7 +101,7 @@ export default function Settings() {
   const [form, setForm] = useState({
     email: user?.email || '',
     smtpHost: user?.smtpHost || 'smtp.gmail.com',
-    smtpPort: user?.smtpPort || 465,
+    smtpPort: user?.smtpPort || 587,
     smtpUsername: user?.smtpUsername || '',
     smtpPassword: '',
     startTls: true,
