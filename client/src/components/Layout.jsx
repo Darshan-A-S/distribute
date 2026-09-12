@@ -1,5 +1,5 @@
 import { NavLink, Outlet, Navigate } from 'react-router-dom'
-import { LogOut, Newspaper, Users, Send, Settings, ShieldCheck } from 'lucide-react'
+import { LogOut, Newspaper, Users, Send, Settings, ShieldCheck, Menu } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import ProfileDialog from './ProfileDialog'
@@ -41,17 +41,14 @@ function avatarUrl() {
   return `https://api.dicebear.com/9.x/thumbs/svg?seed=${seed}`
 }
 
-export default function Layout() {
-  const { user, loading, logout } = useAuth()
+function Sidebar({ onNavigate }) {
+  const { user, logout } = useAuth()
   const [showProfile, setShowProfile] = useState(false)
 
-  if (loading) return null
-  if (!user) return <Navigate to="/login" replace />
-
   return (
-    <div className="h-screen flex">
+    <>
       {showProfile && <ProfileDialog onClose={() => setShowProfile(false)} />}
-      <aside className="w-56 shrink-0 border-r border-white/[0.06] bg-slate-950/50 p-4 flex flex-col gap-1">
+      <div className="flex flex-col gap-1">
         <div className="flex items-center gap-1 px-3 pb-6">
           <img src={logo} alt="distribute" className="h-8 w-8" />
           <p className="text-sm font-semibold tracking-tight text-slate-50">distribute</p>
@@ -63,6 +60,7 @@ export default function Layout() {
               key={l.to}
               to={l.to}
               end={l.end}
+              onClick={onNavigate}
               className={({ isActive }) =>
                 `group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-150 ${
                   isActive
@@ -73,15 +71,18 @@ export default function Layout() {
             >
               {({ isActive }) => (
                 <>
-                  <l.icon className={`h-4 w-4 ${isActive ? 'text-teal-400' : 'text-slate-500 group-hover:text-slate-300'}`} />
-                  {l.label}
+                  <l.icon className={`h-4 w-4 ${isActive ? 'text-teal-400' : 'text-slate-500 group-hover:text-slate-300'}`} />                {l.label}
                 </>
               )}
             </NavLink>
           ))}
         </nav>
 
-        {user.role === 'ADMIN' && <AdminLink to="/app/admin/users" label="Users" icon={ShieldCheck} />}
+        {user.role === 'ADMIN' && (
+          <div onClick={onNavigate}>
+            <AdminLink to="/app/admin/users" label="Users" icon={ShieldCheck} />
+          </div>
+        )}
 
         <div className="mt-auto pt-4">
           <div className="flex items-center gap-3 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2.5">
@@ -108,9 +109,40 @@ export default function Layout() {
             </button>
           </div>
         </div>
+      </div>
+    </>
+  )
+}
+
+export default function Layout() {
+  const { user, loading } = useAuth()
+  const [drawerOpen, setDrawerOpen] = useState(false)
+
+  if (loading) return null
+  if (!user) return <Navigate to="/login" replace />
+
+  return (
+    <div className="h-screen flex">
+      <aside className="hidden md:flex w-56 shrink-0 border-r border-white/[0.06] bg-slate-950/50 p-4">
+        <Sidebar />
       </aside>
-      <main className="flex-1 overflow-auto p-8">
-        <div className="mx-auto max-w-6xl">
+
+      {drawerOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setDrawerOpen(false)} />
+          <aside className="absolute inset-y-0 left-0 w-64 border-r border-white/[0.06] bg-slate-950 p-4">
+            <Sidebar onNavigate={() => setDrawerOpen(false)} />
+          </aside>
+        </div>
+      )}
+
+      <main className="flex-1 overflow-auto">
+        <div className="mx-auto max-w-6xl p-4 md:p-8">
+          <div className="mb-4 flex items-center gap-3 md:hidden">
+            <button onClick={() => setDrawerOpen(true)} title="Menu" aria-label="Menu" className="icon-btn">
+              <Menu className="h-5 w-5" />
+            </button>
+          </div>
           <Outlet />
         </div>
       </main>

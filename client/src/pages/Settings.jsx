@@ -366,7 +366,7 @@ export default function Settings() {
                     ? 'Use your own mail server so emails are genuinely sent from your account.'
                     : 'Verify your email in the Profile tab to configure SMTP settings.'}
                 </p>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="label">SMTP host</label>
                     <input
@@ -442,7 +442,7 @@ export default function Settings() {
                   className="input"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="label">New password</label>
                   <input

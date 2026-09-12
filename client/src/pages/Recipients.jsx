@@ -195,7 +195,7 @@ export default function Recipients() {
         {batches.length === 0 ? (
           <div className="card p-8 text-center text-sm text-slate-500">No batches uploaded yet.</div>
         ) : (
-          <div className="card overflow-hidden">
+          <div className="card overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/[0.06] text-left text-xs text-slate-400">

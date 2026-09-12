@@ -47,7 +47,7 @@ export default function AdminUsers() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <h2 className="page-title">Users</h2>
           <span className="rounded-full bg-teal-400/10 px-2 py-0.5 text-xs font-medium text-teal-300 inline-flex items-center gap-1">
@@ -56,7 +56,7 @@ export default function AdminUsers() {
         </div>
       </div>
 
-      <div className="card overflow-hidden">
+      <div className="card overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-white/[0.06] text-left text-xs uppercase tracking-wider text-slate-500">

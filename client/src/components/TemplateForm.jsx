@@ -81,7 +81,7 @@ export default function TemplateForm({ initial, onSave, onCancel, isAdmin, forke
 
   return (
     <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="flex-1 min-h-0 flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-2">
           {STEPS.map((s, i) => (
             <div key={s.id} className="flex items-center gap-2">
@@ -111,7 +111,7 @@ export default function TemplateForm({ initial, onSave, onCancel, isAdmin, forke
       </div>
 
       {step === 1 ? (
-        <div className="flex-1 min-h-0 grid grid-cols-2 gap-6">
+        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="card flex flex-col gap-3 p-6 min-h-0">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-lg text-slate-100">{initial ? (forked ? 'Save Template' : 'Edit Template') : 'New Template'}</h3>
@@ -124,7 +124,7 @@ export default function TemplateForm({ initial, onSave, onCancel, isAdmin, forke
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="label">Template Name</label>
                 <input
@@ -171,7 +171,7 @@ export default function TemplateForm({ initial, onSave, onCancel, isAdmin, forke
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 required
-                className="input w-full min-h-[300px] flex-1 font-mono resize-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                className="input w-full min-h-[240px] flex-1 font-mono resize-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               />
             </div>
 
@@ -195,7 +195,7 @@ export default function TemplateForm({ initial, onSave, onCancel, isAdmin, forke
           </div>
         </div>
       ) : (
-        <div className="flex-1 min-h-0 min-h-[560px]">
+        <div className="flex-1 min-h-0 min-h-[65vh] lg:min-h-[560px]">
           <CertificateEditor
             value={cert}
             onChange={setCert}

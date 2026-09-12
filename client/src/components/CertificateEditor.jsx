@@ -135,9 +135,10 @@ export default function CertificateEditor({ value, onChange, variables = [] }) {
 
   const onMouseDown = (e) => {
     if (!viewW || previewMode) return
+    const pt = e.touches ? e.touches[0] : e
     const rect = canvasRef.current.getBoundingClientRect()
-    const px = e.clientX - rect.left
-    const py = e.clientY - rect.top
+    const px = pt.clientX - rect.left
+    const py = pt.clientY - rect.top
     const id = pickText(px, py)
     if (id) {
       const t = texts.find((x) => x.id === id)
@@ -152,19 +153,25 @@ export default function CertificateEditor({ value, onChange, variables = [] }) {
   useEffect(() => {
     if (!dragId) return
     const move = (e) => {
+      e.preventDefault()
       if (!dragRef.current) return
+      const pt = e.touches ? e.touches[0] : e
       const rect = canvasRef.current.getBoundingClientRect()
       const { id, dx, dy } = dragRef.current
-      const fx = Math.max(0, Math.min(1, (e.clientX - rect.left - dx) / viewW))
-      const fy = Math.max(0, Math.min(1, (e.clientY - rect.top - dy) / viewH))
+      const fx = Math.max(0, Math.min(1, (pt.clientX - rect.left - dx) / viewW))
+      const fy = Math.max(0, Math.min(1, (pt.clientY - rect.top - dy) / viewH))
       onChange({ ...value, texts: texts.map((t) => (t.id === id ? { ...t, x: fx, y: fy } : t)) })
     }
     const up = () => { dragRef.current = null; setDragId(null) }
     window.addEventListener('mousemove', move)
     window.addEventListener('mouseup', up)
+    window.addEventListener('touchmove', move, { passive: false })
+    window.addEventListener('touchend', up)
     return () => {
       window.removeEventListener('mousemove', move)
       window.removeEventListener('mouseup', up)
+      window.removeEventListener('touchmove', move)
+      window.removeEventListener('touchend', up)
     }
   }, [dragId, viewW, texts])
 
@@ -268,12 +275,13 @@ export default function CertificateEditor({ value, onChange, variables = [] }) {
         )}
       </div>
 
-      <div className="flex-1 min-h-0 flex gap-4">
+      <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-4">
         <div ref={wrapRef} className="flex-1 min-h-0 bg-slate-950/50 border border-white/[0.06] rounded-lg p-4 flex items-center justify-center overflow-auto">
           {image ? (
             <canvas
               ref={canvasRef}
               onMouseDown={onMouseDown}
+              onTouchStart={onMouseDown}
               className={`max-w-full ${previewMode ? 'cursor-default' : 'cursor-move'} shadow-2xl ring-1 ring-white/10`}
               style={{ width: viewW, height: viewH }}
             />
@@ -292,7 +300,7 @@ export default function CertificateEditor({ value, onChange, variables = [] }) {
         </div>
 
         {image && (
-          <div className="w-72 flex flex-col gap-3 min-h-0 overflow-auto">
+          <div className="flex flex-col gap-3 min-h-0 overflow-auto h-56 lg:h-auto shrink-0 max-w-full w-full lg:w-72">
             {image && (
               <>
                 {selected ? (

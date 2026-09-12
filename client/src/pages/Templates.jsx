@@ -42,12 +42,12 @@ function TemplateDialog({ t, actionLabel, onAction, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-950/90" onClick={onClose} />
-      <div className="relative flex h-[40vh] w-full max-w-4xl overflow-hidden rounded-xl border border-teal-700/30 bg-slate-900 shadow-[0_0_45px_-15px_rgba(46,147,60,0.4)]">
+      <div className="relative flex h-[85vh] lg:h-[40vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl border border-teal-700/30 bg-slate-900 shadow-[0_0_45px_-15px_rgba(46,147,60,0.4)] lg:flex-row">
         <div className="flex min-w-0 flex-1 flex-col gap-3 p-5">
           <TemplatePreview body={t.body} fill />
         </div>
 
-        <div className="flex w-72 shrink-0 flex-col gap-4 border-l border-white/[0.06] p-6">
+        <div className="flex w-full shrink-0 flex-col gap-4 border-t border-white/[0.06] p-5 lg:w-72 lg:border-l lg:border-t-0 lg:p-6">
           <button onClick={onClose} aria-label="Close" className="icon-btn self-end">
             <X className="h-4 w-4" />
           </button>
@@ -214,10 +214,10 @@ export default function Templates() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
         <h2 className="page-title">Email Templates</h2>
         {!showForm && (
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             {browsing ? (
               <button onClick={() => setBrowsing(false)} className="btn-secondary">
                 <ArrowLeft className="h-4 w-4" />
