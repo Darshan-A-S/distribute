@@ -4,13 +4,11 @@ import com.sender.model.UserAccount;
 import com.sender.repository.UserAccountRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import jakarta.mail.internet.MimeMessage;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -24,7 +22,10 @@ public class PasswordService {
 
     private final UserAccountRepository repo;
     private final PasswordEncoder passwordEncoder;
-    private final JavaMailSender mailSender;
+    private final BrevoClient sender;
+
+    @Value("${app.url}")
+    private String appUrl;
 
     public void changePassword(UserAccount user, String currentPassword, String newPassword) {
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
@@ -103,7 +104,7 @@ public class PasswordService {
     }
 
     private String resetUrl(String token) {
-        return "http://localhost:5173/reset-password?token=" + token;
+        return appUrl + "/reset-password?token=" + token;
     }
 
     private String mail(String title, String contentPath, Map<String, String> vars) {
@@ -127,13 +128,7 @@ public class PasswordService {
 
     private void sendEmail(String to, String subject, String htmlBody) {
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom("asdarshan10@gmail.com");
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(htmlBody, true);
-            mailSender.send(message);
+            sender.send(to, to, subject, sender.appendFooter(htmlBody, null), Map.of());
         } catch (Exception e) {
             log.error("Failed to send email to {}: {}", to, e.getMessage());
             throw new RuntimeException("Failed to send email");

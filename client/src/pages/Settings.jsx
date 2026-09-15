@@ -2,14 +2,13 @@ import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { api } from '../api/api'
 import { useAuth } from '../context/AuthContext'
-import { ShieldCheck, Mail, KeyRound, CheckCircle2, AlertTriangle, User, Users, Server, TriangleAlert, Calendar, FileText, Layers, Send, BarChart3 } from 'lucide-react'
+import { ShieldCheck, Mail, KeyRound, CheckCircle2, AlertTriangle, User, Users, TriangleAlert, Calendar, FileText, Layers, Send, BarChart3 } from 'lucide-react'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { avatarUrl } from '../components/ProfileDialog'
 
 const TABS = [
   { id: 'profile', label: 'Profile', icon: User },
   { id: 'stats', label: 'Stats', icon: BarChart3 },
-  { id: 'smtp', label: 'SMTP Settings', icon: Server },
   { id: 'password', label: 'Change Password', icon: KeyRound },
   { id: 'danger', label: 'Delete Account', icon: TriangleAlert },
 ]
@@ -100,13 +99,7 @@ export default function Settings() {
   const [tab, setTab] = useState('profile')
   const [form, setForm] = useState({
     email: user?.email || '',
-    smtpHost: user?.smtpHost || 'smtp.gmail.com',
-    smtpPort: user?.smtpPort || 587,
-    smtpUsername: user?.smtpUsername || '',
-    smtpPassword: '',
-    startTls: true,
   })
-  const [busy, setBusy] = useState(false)
 
   // Email verification state
   const [otpSent, setOtpSent] = useState(false)
@@ -138,26 +131,6 @@ export default function Settings() {
       .then((j) => setSentCount(j.reduce((n, x) => n + (x.success || 0), 0)))
       .catch(() => {})
   }, [tab])
-
-  const set = (k) => (e) => {
-    const v = e.target.value
-    setForm((f) => ({ ...f, [k]: k === 'smtpPort' ? (v ? Number(v) : '') : v }))
-  }
-
-  const submit = async (e) => {
-    e.preventDefault()
-    setBusy(true)
-    try {
-      const updated = await api.updateSettings(form)
-      setUser(updated)
-      toast.success('Settings saved')
-      setForm((f) => ({ ...f, smtpPassword: '' }))
-    } catch (err) {
-      toast.error(err.message)
-    } finally {
-      setBusy(false)
-    }
-  }
 
   const handleSendOtp = async () => {
     setSendingOtp(true)
@@ -221,7 +194,7 @@ export default function Settings() {
     <div className="max-w-4xl">
       <div className="mb-6">
         <h1 className="page-title">Settings</h1>
-        <p className="text-sm text-slate-500 mt-1">Manage your profile, mail server, password, and account.</p>
+        <p className="text-sm text-slate-500 mt-1">Manage your profile, password, and account.</p>
       </div>
 
       <div className="flex flex-col gap-6 md:flex-row">
@@ -300,7 +273,7 @@ export default function Settings() {
                 )}
               </div>
               <p className="text-sm text-slate-500 mb-4">
-                Your email is your sender identity and is required to configure SMTP settings.
+                Your email is your sender identity and receives OTP verification codes.
               </p>
 
               {!isVerified && (
@@ -353,78 +326,6 @@ export default function Settings() {
           )}
 
           {tab === 'stats' && <StatsTab />}
-
-          {tab === 'smtp' && (
-            <form onSubmit={submit} className="space-y-5">
-              <section className={`card p-5 ${!isVerified ? 'opacity-50 pointer-events-none' : ''}`}>
-                <div className="flex items-center gap-2 mb-1">
-                  <h2 className="text-lg font-semibold text-slate-100">SMTP server</h2>
-                  {!isVerified && <ShieldCheck className="h-4 w-4 text-amber-400" />}
-                </div>
-                <p className="text-sm text-slate-500 mb-4">
-                  {isVerified
-                    ? 'Use your own mail server so emails are genuinely sent from your account.'
-                    : 'Verify your email in the Profile tab to configure SMTP settings.'}
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="label">SMTP host</label>
-                    <input
-                      type="text"
-                      value={form.smtpHost}
-                      onChange={set('smtpHost')}
-                      placeholder="smtp.gmail.com"
-                      className="input"
-                    />
-                  </div>
-                  <div>
-                    <label className="label">Port</label>
-                    <input
-                      type="number"
-                      value={form.smtpPort}
-                      onChange={set('smtpPort')}
-                      placeholder="587"
-                      className="input"
-                    />
-                  </div>
-                  <div>
-                    <label className="label">Username</label>
-                    <input
-                      type="text"
-                      value={form.smtpUsername}
-                      onChange={(e) => setForm((f) => ({ ...f, smtpUsername: e.target.value }))}
-                      placeholder="you@gmail.com"
-                      className="input"
-                    />
-                  </div>
-                  <div>
-                    <label className="label">App password</label>
-                    <input
-                      type="password"
-                      value={form.smtpPassword}
-                      onChange={(e) => setForm((f) => ({ ...f, smtpPassword: e.target.value }))}
-                      placeholder="Leave blank to keep current"
-                      autoComplete="new-password"
-                      className="input"
-                    />
-                  </div>
-                </div>
-                <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-slate-400">
-                  <input
-                    type="checkbox"
-                    checked={form.startTls}
-                    onChange={(e) => setForm((f) => ({ ...f, startTls: e.target.checked }))}
-                    className="h-4 w-4 rounded border-white/20 bg-slate-950 accent-teal-500"
-                  />
-                  Use STARTTLS
-                </label>
-              </section>
-
-              <button type="submit" disabled={busy || !isVerified} className="btn-primary">
-                {busy ? 'Saving...' : 'Save settings'}
-              </button>
-            </form>
-          )}
 
           {tab === 'password' && (
             <form onSubmit={handleChangePassword} className="card p-5 space-y-4">

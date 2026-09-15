@@ -34,12 +34,6 @@ public class SendController {
         UserAccount user = (UserAccount) auth.getPrincipal();
         Long ownerId = user.getId();
 
-        if (user.getSmtpHost() == null || user.getSmtpHost().isBlank()
-                || user.getSmtpUsername() == null || user.getSmtpUsername().isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("error",
-                    "Configure your SMTP settings in Settings before sending"));
-        }
-
         EmailTemplate template = templateService.findById(req.getTemplateId(), ownerId);
         List<Recipient> recipients;
 

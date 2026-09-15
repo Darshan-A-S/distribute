@@ -7,9 +7,6 @@ public record UserDto(
         String username,
         String email,
         Boolean emailVerified,
-        String smtpHost,
-        Integer smtpPort,
-        String smtpUsername,
         String role,
         LocalDateTime createdAt
 ) {}

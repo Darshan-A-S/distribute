@@ -1,5 +1,11 @@
 spring.application.name=sender
 
+# Render injects PORT; fall back to 8080 locally.
+server.port=${PORT:8080}
+
+# Base URL of the app, used for links inside emails (e.g. password reset).
+app.url=http://localhost:5173
+
 # PostgreSQL Database
 spring.datasource.url=jdbc:postgresql://localhost:5432/sender
 spring.datasource.driver-class-name=org.postgresql.Driver
@@ -12,14 +18,9 @@ spring.jpa.show-sql=false
 spring.servlet.multipart.max-file-size=10MB
 spring.servlet.multipart.max-request-size=10MB
 
-# SMTP config — fill these in to send emails
-spring.mail.host=smtp.gmail.com
-spring.mail.port=587
-spring.mail.username=
-spring.mail.password=
-spring.mail.properties.mail.smtp.auth=true
-spring.mail.properties.mail.smtp.starttls.enable=true
-spring.mail.properties.mail.smtp.starttls.required=true
-
-# App
-app.email.from=Your Name <your-email@gmail.com>
+# Brevo (all outbound email). from-email must be a verified sender
+# in your Brevo dashboard.
+brevo.api-key=
+brevo.from-email=no-reply@yourdomain.com
+brevo.from-name=distribute
+brevo.tool-name=distribute

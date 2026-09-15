@@ -33,12 +33,6 @@ public class UserAccount implements UserDetails {
     @Column(unique = true)
     private String email;
 
-    private String smtpHost;
-    private Integer smtpPort;
-    private String smtpUsername;
-    private String smtpPassword;
-    private Boolean smtpStartTls;
-
     private Boolean emailVerified = false;
     private String verificationOtp;
     private LocalDateTime verificationOtpExpiry;

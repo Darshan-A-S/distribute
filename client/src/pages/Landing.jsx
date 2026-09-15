@@ -537,11 +537,12 @@ export default function Landing() {
           </div>
           <div data-reveal style={{ '--reveal-delay': '240ms' }} className="card p-6">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-500/10">
-              <Settings2 className="h-5 w-5 text-teal-400" />
+              <ShieldCheck className="h-5 w-5 text-teal-400" />
             </div>
-            <h3 className="mt-4 text-base font-semibold text-slate-100">Your SMTP, your reputation</h3>
+            <h3 className="mt-4 text-base font-semibold text-slate-100">Delivered from a verified domain</h3>
             <p className="mt-2 text-sm leading-relaxed text-slate-400">
-              Each account brings its own mail server. Emails go out from your domain. Deliverability stays in your hands.
+              Every message goes out from our verified sending domain — no SMTP setup on your side. Each one is signed with
+              the account that sent it.
             </p>
           </div>
         </div>
@@ -554,7 +555,7 @@ export default function Landing() {
             Start distributing today
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-slate-400">
-            Sign up, connect your mail server, and your first batch of certificates is minutes away.
+            Sign up, and your first batch of certificates is minutes away.
           </p>
           <Link to="/login" className="btn-primary mt-8 px-6 py-3 text-base">
             Get started for free <ArrowRight className="h-4 w-4" />

@@ -2,12 +2,8 @@ import { useState, useEffect } from 'react'
 import { api } from '../api/api'
 import toast from 'react-hot-toast'
 import Dropdown from '../components/Dropdown'
-import { useAuth } from '../context/AuthContext'
-import { Link } from 'react-router-dom'
-import { Settings, AlertTriangle } from 'lucide-react'
 
 export default function Send() {
-  const { user } = useAuth()
   const [templates, setTemplates] = useState([])
   const [selectedTemplate, setSelectedTemplate] = useState('')
   const [batchName, setBatchName] = useState('')
@@ -15,8 +11,6 @@ export default function Send() {
   const [sending, setSending] = useState(false)
   const [activeJobs, setActiveJobs] = useState([])
   const [recent, setRecent] = useState([])
-
-  const hasSmtp = user?.smtpHost && user?.smtpUsername
 
   const loadRecent = () => api.getRecentSends().then(setRecent).catch(() => {})
   const loadBatches = () => api.getBatches().then(setBatches).catch(() => {})
@@ -35,12 +29,11 @@ export default function Send() {
   }
 
   useEffect(() => {
-    if (!hasSmtp) return
     api.getTemplates().then(setTemplates).catch(e => toast.error(e.message))
     loadBatches()
     loadRecent()
     refreshActive()
-  }, [hasSmtp])
+  }, [])
 
   const handleSend = async () => {
     if (!selectedTemplate || !batchName) return toast.error('Select template and batch')
@@ -67,23 +60,7 @@ export default function Send() {
         <p className="text-sm text-slate-500 mt-1">Dispatch your template to every recipient in a batch.</p>
       </div>
 
-      {!hasSmtp ? (
-        <div className="card p-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10">
-            <AlertTriangle className="h-7 w-7 text-amber-400" />
-          </div>
-          <h3 className="text-lg font-semibold text-slate-100 mb-1">SMTP not configured</h3>
-          <p className="text-sm text-slate-400 mb-5 max-w-sm mx-auto">
-            You need to set up your mail server before you can send emails.
-          </p>
-          <Link to="/app/settings" className="btn-primary inline-flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            Set up SMTP
-          </Link>
-        </div>
-      ) : (
-        <>
-        <div className="card p-6 space-y-4">
+      <div className="card p-6 space-y-4">
         <div>
           <label className="label">Email Template</label>
           <Dropdown
@@ -195,8 +172,6 @@ export default function Send() {
           </div>
         )}
       </div>
-        </>
-      )}
     </div>
   )
 }

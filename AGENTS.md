@@ -53,7 +53,7 @@ sender/
 - **DTOs:** Java records (`AuthRequest`, `UserDto`, `ProfileRequest`, etc.). UserDto never leaks passwords.
 - **Ownership:** Flat `ownerId` field on entities, not JPA `@ManyToOne`. Always filter queries by authenticated user.
 - **Error responses:** Uniform `{"error": "..."}` shape. Thrown as `RuntimeException`, caught by `GlobalExceptionHandler`.
-- **Email sending:** Per-user SMTP (each user stores their own SMTP creds in UserAccount). `EmailService` builds a `JavaMailSenderImpl` per user. System emails (password reset, OTP) use the global `JavaMailSender` from application.properties.
+- **Email sending:** All outbound email goes through a single global Brevo account (API key in `application.properties`). `BrevoClient` sends via the Brevo transactional API with the PDF attached as base64; `EmailService` appends an attribution footer ("sent by {username} via {tool}"). System emails (password reset, OTP) use the same client.
 - **Async:** `@Async` on batch send (`SenderApplication` has `@EnableAsync`).
 - **Tests:** Only `CertificateServiceTest`. Run `mvn test`.
 
@@ -84,7 +84,7 @@ All under `/api`. Session auth — 401 if not logged in.
 ## Key Gotchas
 
 - `application.properties` is gitignored. `application.properties.example` is the template.
-- SMTP creds are per-user in the DB. The global `spring.mail.*` config is only for system emails (reset, OTP).
+- All outbound email uses the single global Brevo account (`brevo.*` config). No per-user mail credentials.
 - `ddl-auto=update` — Hibernate auto-migrates schema. Never manually alter columns without checking entity fields.
 - CSRF is disabled (localhost dev tool). Re-enable before exposing beyond localhost.
 - Backend seed: auto-creates `admin/admin123` on startup if missing.

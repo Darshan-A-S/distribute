@@ -129,17 +129,15 @@ export default function Docs() {
             <Step n={1} title="Create an account">
               Sign up with your email and password, then sign in. Everything you build is private to your account.
             </Step>
-            <Step n={2} title="Connect your email">
-              Open <span className="text-slate-200">Settings</span> → <span className="text-slate-200">SMTP</span> and enter the
-              SMTP details of the address mail will be sent <em>from</em> (host, port, username, password). Get these from your
-              email provider (&quot;network settings&quot; or &quot;SMTP&quot;). This is the account recipients will see as the sender.
-            </Step>
-            <Step n={3} title="Verify your email">
+            <Step n={2} title="Verify your email">
               In Settings, send yourself a verification code and enter it. This keeps your sending identity confirmed.
             </Step>
+            <Step n={3} title="Send">
+              Nothing to wire up. Mail goes out from the platform&apos;s verified domain; the application marks every message
+              with the account it was sent by.
+            </Step>
             <Tip>
-              Mail can only go out once SMTP is configured. A test send from the Send page is the fastest way to confirm
-              everything is wired up.
+              A test send from the Send page is the fastest way to confirm everything is wired up.
             </Tip>
           </section>
 
@@ -248,10 +246,10 @@ export default function Docs() {
 
           <section className="mt-10">
             <H2 id="faq" icon={HelpCircle}>Troubleshooting</H2>
-            <P className="font-medium text-slate-200">I set up SMTP but sends fail</P>
+            <P className="font-medium text-slate-200">My send fails</P>
             <P>
-              Double-check host, port, and the username/password in Settings. Some providers require an app-specific password
-              rather than your normal login. Port 587 with STARTTLS is the common default.
+              Check the Recent Sends entry for that recipient; the failure reason is stored. Invalid addresses, full inboxes,
+              and provider rejections each show their own message.
             </P>
             <P className="mt-5 font-medium text-slate-200">My placeholder shows up as raw text</P>
             <P>
@@ -261,7 +259,7 @@ export default function Docs() {
             <P className="mt-5 font-medium text-slate-200">A recipient didn&apos;t get their email</P>
             <P>
               Check the Recent Sends entry for that person; the failure reason is stored. An invalid address, a full inbox,
-              or an SMTP reject each show their own message.
+              or a provider rejection each show their own message.
             </P>
             <P className="mt-5 font-medium text-slate-200">Can I send to the same person twice?</P>
             <P>
