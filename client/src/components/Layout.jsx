@@ -2,7 +2,7 @@ import { NavLink, Outlet, Navigate } from 'react-router-dom'
 import { LogOut, Newspaper, Users, Send, Settings, ShieldCheck, Menu } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import ProfileDialog from './ProfileDialog'
+import ProfileDialog, { avatarUrl } from './ProfileDialog'
 import logo from '../assets/logo-transparent.svg'
 
 const links = [
@@ -30,15 +30,6 @@ function AdminLink({ to, label, icon: Icon }) {
       </NavLink>
     </div>
   )
-}
-
-function avatarUrl() {
-  let seed = localStorage.getItem('avatarSeed')
-  if (!seed) {
-    seed = Math.random().toString(36).slice(2, 10)
-    localStorage.setItem('avatarSeed', seed)
-  }
-  return `https://api.dicebear.com/9.x/thumbs/svg?seed=${seed}`
 }
 
 function Sidebar({ onNavigate }) {
@@ -88,7 +79,7 @@ function Sidebar({ onNavigate }) {
           <div className="flex items-center gap-3 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2.5">
             <button onClick={() => setShowProfile(true)} title="Profile" aria-label="Profile" className="flex min-w-0 flex-1 items-center gap-1.5">
               <img
-                src={avatarUrl()}
+                src={avatarUrl(user.username)}
                 alt="Profile"
                 className="h-9 w-9 shrink-0 rounded-lg bg-slate-800"
               />
