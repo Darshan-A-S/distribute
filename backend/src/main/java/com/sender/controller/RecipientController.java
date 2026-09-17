@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/recipients")
+@RequestMapping("/api/v1/recipients")
 @RequiredArgsConstructor
 public class RecipientController {
 

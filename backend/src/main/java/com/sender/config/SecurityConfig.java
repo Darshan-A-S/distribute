@@ -47,12 +47,12 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/health").permitAll()
-                        .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/logout", "/api/auth/me", "/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
+                        .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/logout", "/api/v1/auth/me", "/api/v1/auth/forgot-password", "/api/v1/auth/reset-password").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/api/templates/library/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/templates/library/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/templates/*/publish").hasRole("ADMIN")
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/templates/library/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/templates/library/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/templates/*/publish").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().permitAll())
                 .exceptionHandling(h -> h.authenticationEntryPoint((request, response, ex) -> {
