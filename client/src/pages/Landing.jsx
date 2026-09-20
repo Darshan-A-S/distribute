@@ -1,7 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Send, ShieldCheck, Settings2, Check, ArrowRight, FileText, Users, Type, Eye, Trash2 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { api } from '../api/api'
+import UpgradeModal from '../components/UpgradeModal'
 import logo from '../assets/logo-transparent.svg'
 
 function Logo() {
@@ -339,6 +341,75 @@ function CertificateEditorCard() {
   )
 }
 
+function Pricing() {
+  const [plans, setPlans] = useState([])
+  const [contact, setContact] = useState('')
+  const [upgradeOpen, setUpgradeOpen] = useState(false)
+
+  useEffect(() => {
+    api.getPlans()
+      .then((r) => {
+        setPlans(r.plans || [])
+        setContact(r.contactEmail || '')
+      })
+      .catch(() => {})
+  }, [])
+
+  return (
+    <section id="pricing" className="mx-auto max-w-6xl px-6 pb-24 scroll-mt-[28vh]">
+      <div className="text-center">
+        <Eyebrow>Pricing</Eyebrow>
+        <h2 className="mx-auto mt-6 max-w-xl text-3xl font-semibold tracking-tight text-slate-50 md:text-4xl">
+          Start free. Scale when you outgrow it.
+        </h2>
+        <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-slate-400">
+          Every account starts on the Free plan — no card required.
+        </p>
+      </div>
+      <div className="mt-12 grid gap-6 md:grid-cols-2">
+        {plans.map((p) => {
+          const pro = p.id === 'PRO'
+          return (
+            <div key={p.id} className={`card relative flex flex-col p-8 ${pro ? 'border-teal-500/30' : ''}`}>
+              {pro && (
+                <span className="absolute right-5 top-5 rounded-full border border-teal-500/20 bg-teal-500/10 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-widest text-teal-300">
+                  Popular
+                </span>
+              )}
+              <h3 className="text-lg font-semibold text-slate-100">{p.name}</h3>
+              <p className="mt-3 flex items-baseline gap-2">
+                <span className="text-4xl font-semibold text-slate-50">{p.price}</span>
+                <span className="text-sm text-slate-500">/ {p.priceNote}</span>
+              </p>
+              <ul className="mt-6 space-y-3 text-sm">
+                {p.features.map((f) => (
+                  <li key={f} className="flex items-start gap-2.5">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-teal-400" />
+                    <span className="text-slate-300">{f}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-8">
+                {pro ? (
+                  contact ? (
+                    <button onClick={() => setUpgradeOpen(true)} className="btn-primary w-full">Contact to upgrade</button>
+                  ) : (
+                    <Link to="/login" className="btn-secondary w-full">Sign in</Link>
+                  )
+                ) : (
+                  <Link to="/login" className="btn-secondary w-full">Start free</Link>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {upgradeOpen && <UpgradeModal contact={contact} onClose={() => setUpgradeOpen(false)} />}
+    </section>
+  )
+}
+
 export default function Landing() {
   const { user } = useAuth()
 
@@ -547,6 +618,8 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
+      <Pricing />
 
       <section className="mx-auto max-w-6xl px-6 pb-24">
         <div data-reveal className="card rounded-2xl border-white/[0.08] px-8 py-16 text-center">

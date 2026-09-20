@@ -33,6 +33,9 @@ public class UserAccount implements UserDetails {
     @Column(unique = true)
     private String email;
 
+    @Column(nullable = false, columnDefinition = "varchar(20) default 'FREE'")
+    private String plan = "FREE";
+
     private Boolean emailVerified = false;
     private String verificationOtp;
     private LocalDateTime verificationOtpExpiry;

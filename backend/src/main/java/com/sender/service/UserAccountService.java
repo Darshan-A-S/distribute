@@ -35,6 +35,7 @@ public class UserAccountService implements UserDetailsService {
                 .username(name)
                 .password(passwordEncoder.encode(password))
                 .role("USER")
+                .plan("FREE")
                 .build());
         return toDto(user);
     }
@@ -65,9 +66,20 @@ public class UserAccountService implements UserDetailsService {
         repo.save(user);
     }
 
+    public void setPlan(Long id, String plan) {
+        if (!"FREE".equals(plan) && !"PRO".equals(plan)) {
+            throw new RuntimeException("Plan must be FREE or PRO");
+        }
+        UserAccount user = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setPlan(plan);
+        repo.save(user);
+    }
+
     public UserDto toDto(UserAccount user) {
         return new UserDto(user.getId(), user.getUsername(), user.getEmail(),
-                user.getEmailVerified(), user.getRole(), user.getCreatedAt());
+                user.getEmailVerified(), user.getRole(),
+                user.getPlan() == null ? "FREE" : user.getPlan(), user.getCreatedAt());
     }
 
     public UserDto updateProfile(UserAccount user, ProfileRequest req) {

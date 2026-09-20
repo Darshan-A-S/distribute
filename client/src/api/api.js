@@ -31,11 +31,15 @@ export const api = {
   deleteAccount: () => request('/v1/auth/account', { method: 'DELETE' }),
   forgotPassword: (email) => request('/v1/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
   resetPassword: (data) => request('/v1/auth/reset-password', { method: 'POST', body: JSON.stringify(data) }),
+  getPlans: () => request('/v1/plans'),
+  getUsage: () => request('/v1/plans/usage'),
+  contactOwner: (data) => request('/v1/plans/contact', { method: 'POST', body: JSON.stringify(data) }),
 
   // Admin
   getUsers: () => request('/v1/admin/users'),
   deleteUser: (id) => request(`/v1/admin/users/${id}`, { method: 'DELETE' }),
   setUserRole: (id, role) => request(`/v1/admin/users/${id}/role`, { method: 'PUT', body: JSON.stringify({ role }) }),
+  setUserPlan: (id, plan) => request(`/v1/admin/users/${id}/plan`, { method: 'PUT', body: JSON.stringify({ plan }) }),
 
   // Templates
   getTemplates: () => request('/v1/templates'),

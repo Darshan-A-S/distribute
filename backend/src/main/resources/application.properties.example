@@ -6,6 +6,9 @@ server.port=${PORT:8080}
 # Base URL of the app, used for links inside emails (e.g. password reset).
 app.url=http://localhost:5173
 
+# Contact email shown on the Plan page / pricing for people wanting to upgrade to Pro.
+app.contact-email=you@email.com
+
 # PostgreSQL Database
 spring.datasource.url=jdbc:postgresql://localhost:5432/sender
 spring.datasource.driver-class-name=org.postgresql.Driver

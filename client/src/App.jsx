@@ -4,6 +4,7 @@ import Templates from './pages/Templates'
 import Recipients from './pages/Recipients'
 import Send from './pages/Send'
 import Settings from './pages/Settings'
+import Plan from './pages/Plan'
 import AdminUsers from './pages/AdminUsers'
 import Login from './pages/Login'
 import ResetPassword from './pages/ResetPassword'
@@ -21,6 +22,7 @@ export default function App() {
         <Route index element={<Templates />} />
         <Route path="recipients" element={<Recipients />} />
         <Route path="send" element={<Send />} />
+        <Route path="plan" element={<Plan />} />
         <Route path="settings" element={<Settings />} />
         <Route path="admin/users" element={<AdminUsers />} />
       </Route>

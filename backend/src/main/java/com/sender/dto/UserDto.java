@@ -8,5 +8,6 @@ public record UserDto(
         String email,
         Boolean emailVerified,
         String role,
+        String plan,
         LocalDateTime createdAt
 ) {}

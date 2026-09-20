@@ -1,6 +1,7 @@
 package com.sender.controller;
 
 import com.sender.dto.SendRequest;
+import com.sender.dto.UsageDto;
 import com.sender.model.EmailTemplate;
 import com.sender.model.Recipient;
 import com.sender.model.SendJob;
@@ -9,6 +10,7 @@ import com.sender.repository.RecipientRepository;
 import com.sender.repository.SendJobRepository;
 import com.sender.service.EmailService;
 import com.sender.service.ExcelService;
+import com.sender.service.PlanService;
 import com.sender.service.TemplateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +29,7 @@ public class SendController {
     private final TemplateService templateService;
     private final RecipientRepository recipientRepo;
     private final SendJobRepository sendJobRepo;
+    private final PlanService planService;
 
     @PostMapping("/api/v1/send")
     public ResponseEntity<Map<String, String>> send(@RequestBody SendRequest req, Authentication auth) {
@@ -50,6 +53,14 @@ public class SendController {
         List<Recipient> recipients = recipientRepo.findByOwnerIdAndUploadBatchAndSentFalse(ownerId, req.getBatchName());
         if (recipients.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "No unsent recipients found in batch"));
+        }
+
+        UsageDto usage = planService.usage(user);
+        if (recipients.size() > usage.remaining()) {
+            return ResponseEntity.status(429).body(Map.of("error", String.format(
+                    "Daily send limit reached: your %s plan allows %d emails per day and %d are already sent today. " +
+                            "This batch needs %d. Upgrade to Pro or try again tomorrow.",
+                    usage.plan(), usage.dailyLimit(), usage.usedToday(), recipients.size())));
         }
 
         SendJob job = sendJobRepo.save(SendJob.builder()

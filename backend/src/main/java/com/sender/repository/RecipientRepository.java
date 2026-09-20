@@ -16,6 +16,7 @@ public interface RecipientRepository extends JpaRepository<Recipient, Long> {
     long countByOwnerIdAndUploadBatch(Long ownerId, String uploadBatch);
     long countByOwnerIdAndUploadBatchAndSentTrue(Long ownerId, String uploadBatch);
     long countByOwnerIdAndUploadBatchAndSentFalse(Long ownerId, String uploadBatch);
+    long countByOwnerIdAndSentAtAfter(Long ownerId, LocalDateTime after);
     void deleteByOwnerIdAndUploadBatch(Long ownerId, String uploadBatch);
     Optional<Recipient> findByIdAndOwnerId(Long id, Long ownerId);
 

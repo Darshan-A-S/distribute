@@ -16,3 +16,6 @@ client/dist/
 # OS
 .DS_Store
 Thumbs.db
+
+#brag
+brag-output/

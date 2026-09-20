@@ -79,7 +79,8 @@ All under `/api`. Session auth — 401 if not logged in.
 | Templates | library publish/edit/delete, template publish | Admin |
 | Recipients | upload, preview, batches, stats, delete, reset | User |
 | Send | trigger, status, recent | User |
-| Admin | users list, delete, set-role | Admin |
+| Plans | list (public), usage | Public / User |
+| Admin | users list, delete, set-role, set-plan | Admin |
 
 ## Key Gotchas
 

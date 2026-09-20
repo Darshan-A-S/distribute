@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Trash2, ShieldCheck, Shield, ShieldOff, CheckCircle2, AlertTriangle } from 'lucide-react'
+import { Trash2, ShieldCheck, Shield, ShieldOff, CheckCircle2, AlertTriangle, Zap, ZapOff } from 'lucide-react'
 import { api } from '../api/api'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
@@ -10,6 +10,7 @@ export default function AdminUsers() {
   const [users, setUsers] = useState([])
   const [confirmDelete, setConfirmDelete] = useState(null)
   const [confirmRole, setConfirmRole] = useState(null)
+  const [confirmPlan, setConfirmPlan] = useState(null)
   const [busy, setBusy] = useState(false)
 
   const load = () => api.getUsers().then(setUsers).catch(e => toast.error(e.message))
@@ -45,6 +46,21 @@ export default function AdminUsers() {
     }
   }
 
+  const handlePlan = async () => {
+    if (!confirmPlan) return
+    setBusy(true)
+    try {
+      await api.setUserPlan(confirmPlan.id, confirmPlan.plan)
+      toast.success(confirmPlan.plan === 'PRO' ? `${confirmPlan.username} upgraded to Pro` : `${confirmPlan.username} moved to Free`)
+      load()
+    } catch (e) {
+      toast.error(e.message)
+    } finally {
+      setBusy(false)
+      setConfirmPlan(null)
+    }
+  }
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
@@ -63,6 +79,7 @@ export default function AdminUsers() {
               <th className="px-4 py-3 font-semibold">Username</th>
               <th className="px-4 py-3 font-semibold">Email</th>
               <th className="px-4 py-3 font-semibold">Role</th>
+              <th className="px-4 py-3 font-semibold">Plan</th>
               <th className="px-4 py-3 font-semibold">Joined</th>
               <th className="px-4 py-3 font-semibold text-right">Actions</th>
             </tr>
@@ -89,11 +106,26 @@ export default function AdminUsers() {
                     <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-xs font-medium text-slate-400">User</span>
                   )}
                 </td>
+                <td className="px-4 py-3">
+                  {u.plan === 'PRO' ? (
+                    <span className="rounded-full bg-teal-500/10 border border-teal-500/20 px-2 py-0.5 text-xs font-medium text-teal-300">Pro</span>
+                  ) : (
+                    <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-xs font-medium text-slate-400">Free</span>
+                  )}
+                </td>
                 <td className="px-4 py-3 text-slate-400">
                   {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—'}
                 </td>
                 <td className="px-4 py-3 text-right">
                   <span className="inline-flex gap-1">
+                    <button
+                      onClick={() => setConfirmPlan({ id: u.id, plan: u.plan === 'PRO' ? 'FREE' : 'PRO', username: u.username, target: u.plan === 'PRO' ? 'Free' : 'Pro' })}
+                      title={u.plan === 'PRO' ? 'Move to Free plan' : 'Upgrade to Pro plan'}
+                      aria-label={u.plan === 'PRO' ? 'Move to Free plan' : 'Upgrade to Pro plan'}
+                      className={u.plan === 'PRO' ? 'icon-btn text-slate-400 hover:bg-white/10 hover:text-slate-200' : 'icon-btn text-teal-400/80 hover:bg-teal-400/10 hover:text-teal-300'}
+                    >
+                      {u.plan === 'PRO' ? <ZapOff className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
+                    </button>
                     {u.id !== user?.id && (u.role === 'ADMIN' ? (
                       <button
                         onClick={() => setConfirmRole({ id: u.id, role: 'USER', username: u.username })}
@@ -154,6 +186,21 @@ export default function AdminUsers() {
           loading={busy}
           onConfirm={handleRole}
           onCancel={() => setConfirmRole(null)}
+        />
+      )}
+
+      {confirmPlan && (
+        <ConfirmDialog
+          title={`${confirmPlan.plan === 'PRO' ? 'Upgrade' : 'Downgrade'} to ${confirmPlan.plan}`}
+          message={
+            confirmPlan.plan === 'PRO'
+              ? `"${confirmPlan.username}" will get the Pro plan (${confirmPlan.target}).`
+              : `"${confirmPlan.username}" will go back to the Free plan (60 emails/day).`
+          }
+          confirmLabel={confirmPlan.plan === 'PRO' ? 'Upgrade' : 'Downgrade'}
+          loading={busy}
+          onConfirm={handlePlan}
+          onCancel={() => setConfirmPlan(null)}
         />
       )}
     </div>

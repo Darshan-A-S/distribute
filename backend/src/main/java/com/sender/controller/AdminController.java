@@ -44,4 +44,14 @@ public class AdminController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
+
+    @PutMapping("/users/{id}/plan")
+    public ResponseEntity<?> setPlan(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        try {
+            userService.setPlan(id, body.get("plan"));
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
 }

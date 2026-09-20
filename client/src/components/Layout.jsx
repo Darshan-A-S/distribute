@@ -1,5 +1,5 @@
 import { NavLink, Outlet, Navigate } from 'react-router-dom'
-import { LogOut, Newspaper, Users, Send, Settings, ShieldCheck, Menu } from 'lucide-react'
+import { LogOut, Newspaper, Users, Send, Settings, ShieldCheck, Menu, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import ProfileDialog, { avatarUrl } from './ProfileDialog'
@@ -9,6 +9,7 @@ const links = [
   { to: '/app', label: 'Templates', icon: Newspaper, end: true },
   { to: '/app/recipients', label: 'Recipients', icon: Users },
   { to: '/app/send', label: 'Send', icon: Send },
+  { to: '/app/plan', label: 'Plan', icon: Sparkles },
 ]
 
 function AdminLink({ to, label, icon: Icon }) {
@@ -83,9 +84,14 @@ function Sidebar({ onNavigate }) {
                 alt="Profile"
                 className="h-9 w-9 shrink-0 rounded-lg bg-slate-800"
               />
-              <p className="min-w-0 flex-1 truncate text-sm font-medium text-slate-200 hover:text-slate-50">
-                {user.username}
-              </p>
+              <span className="flex min-w-0 flex-1 flex-col items-start">
+                <span className="w-full truncate text-sm font-medium text-slate-200 hover:text-slate-50">
+                  {user.username}
+                </span>
+                <span className={`mt-0.5 rounded px-1 py-px text-[9px] font-semibold uppercase tracking-wider ${user.plan === 'PRO' ? 'bg-teal-500/10 text-teal-300' : 'bg-white/[0.06] text-slate-400'}`}>
+                  {user.plan === 'PRO' ? 'Pro' : 'Free'}
+                </span>
+              </span>
             </button>
             <NavLink
               to="/app/settings"
