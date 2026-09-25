@@ -33,7 +33,7 @@ public class UserAccount implements UserDetails {
     @Column(unique = true)
     private String email;
 
-    @Column(nullable = false, columnDefinition = "varchar(20) default 'FREE'")
+    @Column(nullable = false)
     private String plan = "FREE";
 
     private Boolean emailVerified = false;
