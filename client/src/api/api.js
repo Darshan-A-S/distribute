@@ -68,11 +68,11 @@ export const api = {
     fd.append('columnMapping', JSON.stringify(columnMapping))
     return fetch(`${API}/v1/recipients/upload`, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json())
   },
-  getBatch: (name) => request(`/v1/recipients/batch/${name}`),
+  getBatch: (name) => request(`/v1/recipients/batch/${encodeURIComponent(name)}`),
   getBatches: () => request('/v1/recipients/batches'),
-  getBatchStats: (name) => request(`/v1/recipients/batch/${name}/stats`),
-  deleteBatch: (name) => request(`/v1/recipients/batch/${name}`, { method: 'DELETE' }),
-  resetBatch: (name) => request(`/v1/recipients/batch/${name}/reset`, { method: 'POST' }),
+  getBatchStats: (name) => request(`/v1/recipients/batch/${encodeURIComponent(name)}/stats`),
+  deleteBatch: (name) => request(`/v1/recipients/batch/${encodeURIComponent(name)}`, { method: 'DELETE' }),
+  resetBatch: (name) => request(`/v1/recipients/batch/${encodeURIComponent(name)}/reset`, { method: 'POST' }),
 
   // Send
   send: (data) => request('/v2/send', { method: 'POST', body: JSON.stringify(data) }),

@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
-import { Trash2, RotateCcw } from 'lucide-react'
+import { Trash2, RotateCcw, Table } from 'lucide-react'
 import { api } from '../api/api'
 import toast from 'react-hot-toast'
 import ConfirmDialog from '../components/ConfirmDialog'
+import BatchPreviewDialog from '../components/BatchPreviewDialog'
 
 export default function Recipients() {
   const [file, setFile] = useState(null)
@@ -13,6 +14,7 @@ export default function Recipients() {
   const fileRef = useRef(null)
   const [batches, setBatches] = useState([])
   const [confirmAction, setConfirmAction] = useState(null)
+  const [viewingBatch, setViewingBatch] = useState(null)
 
   const handlePreview = async (f = file) => {
     if (!f) return toast.error('Select a file first')
@@ -215,6 +217,15 @@ export default function Recipients() {
                     <td className="px-4 py-3 text-amber-400">{b.pending}</td>
                     <td className="px-4 py-3 text-right whitespace-nowrap">
                       <button
+                        onClick={() => setViewingBatch(b.batch)}
+                        disabled={loading}
+                        title="View recipients"
+                        aria-label="View recipients"
+                        className="icon-btn mr-2 text-slate-400 hover:bg-white/[0.06] hover:text-teal-300 disabled:opacity-50"
+                      >
+                        <Table className="h-4 w-4" />
+                      </button>
+                      <button
                         onClick={() => setConfirmAction({ kind: 'reset', name: b.batch })}
                         disabled={loading}
                         title="Reset"
@@ -257,6 +268,13 @@ export default function Recipients() {
             else runResetBatch(name)
           }}
           onCancel={() => setConfirmAction(null)}
+        />
+      )}
+
+      {viewingBatch && (
+        <BatchPreviewDialog
+          batchName={viewingBatch}
+          onClose={() => setViewingBatch(null)}
         />
       )}
     </div>

@@ -53,14 +53,14 @@ public class EmailService {
             for (Recipient recipient : recipients) {
                 if (sendOne(template, recipient, user)) {
                     success++;
-                    job.setSuccess(success);
                 } else {
                     failed++;
-                    job.setFailed(failed);
                 }
-                sendJobRepo.save(job);
+                sendJobRepo.updateProgress(job.getId(), success, failed);
             }
 
+            job.setSuccess(success);
+            job.setFailed(failed);
             log.info("Batch complete: {} sent, {} failed out of {}", success, failed, recipients.size());
         } finally {
             job.setStatus("DONE");
@@ -79,27 +79,19 @@ public class EmailService {
             sendJobRepo.save(job);
 
             List<List<Recipient>> chunks = partition(recipients, CHUNK_SIZE);
-            int success;
-            int failed;
+            AtomicInteger ok = new AtomicInteger();
+            AtomicInteger notOk = new AtomicInteger();
+
             if (recipients.size() < PARALLEL_THRESHOLD) {
-                int[] r = {0, 0};
-                chunks.forEach(c -> {
-                    int[] s = sendChunk(template, c, user);
-                    r[0] += s[0];
-                    r[1] += s[1];
-                });
-                success = r[0];
-                failed = r[1];
+                for (List<Recipient> chunk : chunks) {
+                    sendChunk(template, chunk, user, job.getId(), ok, notOk);
+                }
             } else {
-                AtomicInteger ok = new AtomicInteger();
-                AtomicInteger notOk = new AtomicInteger();
                 CountDownLatch latch = new CountDownLatch(chunks.size());
                 for (List<Recipient> chunk : chunks) {
                     emailExecutor.submit(() -> {
                         try {
-                            int[] s = sendChunk(template, chunk, user);
-                            ok.addAndGet(s[0]);
-                            notOk.addAndGet(s[1]);
+                            sendChunk(template, chunk, user, job.getId(), ok, notOk);
                         } finally {
                             latch.countDown();
                         }
@@ -110,31 +102,32 @@ public class EmailService {
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
-                success = ok.get();
-                failed = notOk.get();
             }
 
-            job.setSuccess(success);
-            job.setFailed(failed);
+            job.setSuccess(ok.get());
+            job.setFailed(notOk.get());
             job.setStatus("DONE");
             job.setFinishedAt(LocalDateTime.now());
             sendJobRepo.save(job);
-            log.info("Batch complete: {} sent, {} failed out of {}", success, failed, recipients.size());
+            log.info("Batch complete: {} sent, {} failed out of {}", ok.get(), notOk.get(), recipients.size());
         } finally {
             lock.unlock();
         }
     }
 
-    private int[] sendChunk(EmailTemplate template, List<Recipient> chunk, UserAccount user) {
-        int[] r = {0, 0};
+    private void sendChunk(EmailTemplate template, List<Recipient> chunk, UserAccount user,
+                           Long jobId, AtomicInteger ok, AtomicInteger notOk) {
         for (Recipient recipient : chunk) {
             if (sendOne(template, recipient, user)) {
-                r[0]++;
+                int s = ok.incrementAndGet();
+                int f = notOk.get();
+                sendJobRepo.updateProgress(jobId, s, f);
             } else {
-                r[1]++;
+                int s = ok.get();
+                int f = notOk.incrementAndGet();
+                sendJobRepo.updateProgress(jobId, s, f);
             }
         }
-        return r;
     }
 
     private List<List<Recipient>> partition(List<Recipient> list, int size) {

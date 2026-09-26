@@ -3,7 +3,7 @@ package com.sender.service;
 import com.sender.dto.PlanDto;
 import com.sender.dto.UsageDto;
 import com.sender.model.UserAccount;
-import com.sender.repository.RecipientRepository;
+import com.sender.repository.SendJobRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,7 @@ public class PlanService {
     public static final int FREE_DAILY_LIMIT = 60;
     public static final int PRO_DAILY_LIMIT = 300;
 
-    private final RecipientRepository recipientRepo;
+    private final SendJobRepository sendJobRepo;
     private final BrevoClient sender;
 
     @Value("${app.contact-email:}")
@@ -61,7 +61,7 @@ public class PlanService {
     }
 
     public UsageDto usage(UserAccount user) {
-        int used = (int) recipientRepo.countByOwnerIdAndSentAtAfter(user.getId(), LocalDate.now().atStartOfDay());
+        int used = sendJobRepo.sumSuccessByOwnerIdAndStartedAtAfter(user.getId(), LocalDate.now().atStartOfDay());
         int limit = dailyLimit(user.getPlan());
         return new UsageDto(user.getPlan() == null ? "FREE" : user.getPlan(),
                 limit, used, Math.max(0, limit - used),
