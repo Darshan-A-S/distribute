@@ -4,6 +4,7 @@ import com.sender.dto.ExcelPreview;
 import com.sender.model.Recipient;
 import com.sender.model.UserAccount;
 import com.sender.repository.RecipientRepository;
+import com.sender.repository.SendJobRepository;
 import com.sender.service.ExcelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,7 @@ public class RecipientController {
 
     private final ExcelService excelService;
     private final RecipientRepository recipientRepo;
+    private final SendJobRepository sendJobRepo;
 
     @GetMapping("/stats/daily")
     public List<Map<String, Object>> dailyStats(
@@ -36,7 +38,7 @@ public class RecipientController {
             out.add(new LinkedHashMap<>(Map.of("date", since.plusDays(i), "count", 0L)));
         }
         Map<LocalDate, Long> byDay = new LinkedHashMap<>();
-        recipientRepo.countSentByDay(ownerId(auth), since.atStartOfDay())
+        sendJobRepo.countSentByDay(ownerId(auth), since.atStartOfDay())
                 .forEach(row -> byDay.put(toLocalDate(row[0]), ((Number) row[1]).longValue()));
         out.forEach(m -> {
             Long c = byDay.get(m.get("date"));

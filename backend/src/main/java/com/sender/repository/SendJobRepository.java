@@ -25,4 +25,11 @@ public interface SendJobRepository extends JpaRepository<SendJob, Long> {
 
     @Query("SELECT COALESCE(SUM(j.success), 0) FROM SendJob j WHERE j.ownerId = :ownerId AND j.startedAt >= :since")
     int sumSuccessByOwnerIdAndStartedAtAfter(@Param("ownerId") Long ownerId, @Param("since") LocalDateTime since);
+
+    @Query("SELECT FUNCTION('DATE', j.startedAt), COALESCE(SUM(j.success), 0) " +
+            "FROM SendJob j " +
+            "WHERE j.ownerId = :ownerId AND j.startedAt >= :since " +
+            "GROUP BY FUNCTION('DATE', j.startedAt) " +
+            "ORDER BY FUNCTION('DATE', j.startedAt)")
+    List<Object[]> countSentByDay(@Param("ownerId") Long ownerId, @Param("since") LocalDateTime since);
 }
